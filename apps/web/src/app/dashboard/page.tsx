@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,6 +54,12 @@ function Dashboard() {
           Log out
         </Button>
       </header>
+
+      <div className="mb-4">
+        <Button variant="outline" render={<Link href="/customers" />}>
+          👥 Customers
+        </Button>
+      </div>
 
       <Card>
         <CardHeader>

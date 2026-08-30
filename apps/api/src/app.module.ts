@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuthModule } from './auth/auth.module';
 import { BusinessModule } from './businesses/business.module';
+import { CustomerModule } from './customers/customer.module';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
@@ -18,6 +19,7 @@ import { RedisModule } from './redis/redis.module';
     RedisModule,
     AuthModule,
     BusinessModule,
+    CustomerModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

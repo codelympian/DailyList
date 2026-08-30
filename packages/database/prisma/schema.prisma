@@ -69,8 +69,119 @@ model Business {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   memberships BusinessMembership[]
+  customers   Customer[]
 
   @@map("businesses")
+}
+
+// ============================================================
+// Phase 2 — Customers, identities, timeline events
+// ============================================================
+
+enum LifecycleStage {
+  LEAD
+  CUSTOMER
+  INACTIVE
+  LOST
+}
+
+enum CustomerSource {
+  MANUAL
+  IMPORT
+  WHATSAPP
+  INSTAGRAM
+  OTHER
+}
+
+enum IdentityType {
+  PHONE
+  EMAIL
+  WHATSAPP
+  INSTAGRAM
+  EXTERNAL_ID
+}
+
+enum CustomerEventType {
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  LEAD_CREATED
+  MESSAGE_SENT
+  MESSAGE_RECEIVED
+  QUOTE_REQUESTED
+  QUOTE_SENT
+  PURCHASE
+  PAYMENT
+  DEBT_CREATED
+  DEBT_PAYMENT
+  FOLLOW_UP
+  FOLLOW_UP_COMPLETED
+  FOLLOW_UP_SKIPPED
+  CUSTOMER_REACTIVATED
+  CUSTOMER_LOST
+}
+
+model Customer {
+  id             String         @id @default(uuid()) @db.Uuid
+  businessId     String         @map("business_id") @db.Uuid
+  name           String
+  // Normalized E.164 (e.g. +2348012345678); raw input is normalized on write.
+  phone          String?
+  email          String?
+  notes          String?
+  source         CustomerSource @default(MANUAL)
+  lifecycleStage LifecycleStage @default(CUSTOMER) @map("lifecycle_stage")
+  tags           String[]       @default([])
+
+  // Denormalized purchase statistics, maintained by transaction writes (Phase 3+).
+  totalSpend      Decimal   @default(0) @map("total_spend") @db.Decimal(14, 2)
+  purchaseCount   Int       @default(0) @map("purchase_count")
+  lastPurchaseAt  DateTime? @map("last_purchase_at")
+  lastContactedAt DateTime? @map("last_contacted_at")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  identities CustomerIdentity[]
+  events     CustomerEvent[]
+
+  @@index([businessId, deletedAt, name])
+  @@index([businessId, deletedAt, createdAt])
+  @@map("customers")
+}
+
+model CustomerIdentity {
+  id         String       @id @default(uuid()) @db.Uuid
+  businessId String       @map("business_id") @db.Uuid
+  customerId String       @map("customer_id") @db.Uuid
+  type       IdentityType
+  // Normalized value (E.164 for PHONE, lowercase for EMAIL).
+  value      String
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, type, value])
+  @@index([customerId])
+  @@map("customer_identities")
+}
+
+model CustomerEvent {
+  id         String            @id @default(uuid()) @db.Uuid
+  businessId String            @map("business_id") @db.Uuid
+  customerId String            @map("customer_id") @db.Uuid
+  type       CustomerEventType
+  title      String
+  // Structured event data (amounts, product names, ...). Never store secrets here.
+  payload    Json?
+  occurredAt DateTime          @default(now()) @map("occurred_at")
+  createdAt  DateTime          @default(now()) @map("created_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, customerId, occurredAt(sort: Desc)])
+  @@map("customer_events")
 }
 
 model BusinessMembership {

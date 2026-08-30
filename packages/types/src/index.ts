@@ -58,3 +58,63 @@ export interface ApiErrorBody {
   error?: string;
   details?: { path: string; message: string }[];
 }
+
+// ============================================================
+// Customers (Phase 2)
+// ============================================================
+
+export type LifecycleStage = 'LEAD' | 'CUSTOMER' | 'INACTIVE' | 'LOST';
+export type CustomerSource = 'MANUAL' | 'IMPORT' | 'WHATSAPP' | 'INSTAGRAM' | 'OTHER';
+export type IdentityType = 'PHONE' | 'EMAIL' | 'WHATSAPP' | 'INSTAGRAM' | 'EXTERNAL_ID';
+
+export interface Paginated<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CustomerSummary {
+  id: string;
+  name: string;
+  phone: string | null;
+  email: string | null;
+  lifecycleStage: LifecycleStage;
+  tags: string[];
+  totalSpend: string; // decimal serialized as string
+  purchaseCount: number;
+  lastPurchaseAt: string | null;
+  createdAt: string;
+}
+
+export interface CustomerIdentitySummary {
+  id: string;
+  type: IdentityType;
+  value: string;
+}
+
+export interface CustomerDetail extends CustomerSummary {
+  notes: string | null;
+  source: CustomerSource;
+  lastContactedAt: string | null;
+  updatedAt: string;
+  identities: CustomerIdentitySummary[];
+}
+
+export interface TimelineEvent {
+  id: string;
+  type: string;
+  title: string;
+  payload: Record<string, unknown> | null;
+  occurredAt: string;
+}
+
+/** 409 body when creating/updating a customer collides with an existing identity. */
+export interface DuplicateCustomerError extends ApiErrorBody {
+  duplicate: {
+    customerId: string;
+    customerName: string;
+    identityType: IdentityType;
+    value: string;
+  };
+}
