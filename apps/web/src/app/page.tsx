@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { getGreeting } from '@/lib/greeting';
 import { ApiHealth } from './api-health';
 
@@ -10,6 +12,15 @@ export default function Home() {
         <p className="max-w-sm text-balance text-lg text-gray-500">
           Your daily sales assistant. Know who to contact today, why, and what to say.
         </p>
+      </div>
+
+      <div className="flex w-full max-w-sm flex-col gap-3 sm:flex-row">
+        <Button className="flex-1" render={<Link href="/register" />}>
+          Get started
+        </Button>
+        <Button variant="outline" className="flex-1" render={<Link href="/login" />}>
+          Log in
+        </Button>
       </div>
 
       <div className="w-full max-w-sm rounded-2xl border border-gray-200 p-5 dark:border-gray-800">

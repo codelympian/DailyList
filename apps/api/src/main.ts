@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import { loadEnv } from '@dailylist/config';
 import { AppModule } from './app.module';
 
@@ -7,6 +8,7 @@ async function bootstrap(): Promise<void> {
   const env = loadEnv();
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
   app.enableCors({ origin: env.API_CORS_ORIGIN, credentials: true });
   app.enableShutdownHooks();
 

@@ -16,16 +16,22 @@
     "@dailylist/config": "*",
     "@dailylist/database": "*",
     "@dailylist/types": "*",
+    "@dailylist/validation": "*",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "@nestjs/platform-express": "^11.1.6",
+    "@nestjs/throttler": "^6.4.0",
+    "argon2": "^0.44.0",
+    "cookie-parser": "^1.4.7",
     "ioredis": "^5.4.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.7",
     "@nestjs/testing": "^11.1.6",
+    "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^24",

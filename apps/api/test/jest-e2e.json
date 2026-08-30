@@ -3,5 +3,7 @@
   "testEnvironment": "node",
   "rootDir": ".",
   "testMatch": ["**/*.e2e-spec.ts"],
+  "setupFiles": ["<rootDir>/setup-env.ts"],
+  "globalSetup": "<rootDir>/global-setup.ts",
   "testTimeout": 30000
 }

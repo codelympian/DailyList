@@ -26,21 +26,21 @@
 
 ## Verification (all actually run on 2026-08-30)
 
-| Check | Result |
-| --- | --- |
-| `npm run build` (Turbo, 6 tasks: web/api/worker/database/config/types) | ✅ pass |
-| `npm run typecheck` (5 workspaces) | ✅ pass |
-| `npm run lint` (6 workspaces) | ✅ pass |
-| `npm run format:check` | ✅ pass |
-| `npm run test` — 13 unit tests (web 3, worker 3, config 3, api 4) | ✅ pass |
-| `npm run test:e2e -w @dailylist/api` — Supertest vs real DB+Redis | ✅ pass |
-| `prisma migrate dev` — migration created & applied; `health_checks` + `_prisma_migrations` present | ✅ pass |
-| PostgreSQL connectivity (`SELECT version()` → PostgreSQL 18.3) | ✅ pass |
-| Redis connectivity (`redis-cli ping` → PONG) | ✅ pass |
-| Manual: built API served `/health` → `{"status":"ok", database up, redis up}` | ✅ pass |
-| Manual: built worker processed startup heartbeat job (209ms) | ✅ pass |
-| Manual: built web served landing page (HTTP 200, correct title/content) | ✅ pass |
-| CI workflow (`.github/workflows/ci.yml`) | ⚠ not yet executed — no remote repo; runs on first push |
+| Check                                                                                              | Result                                                  |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `npm run build` (Turbo, 6 tasks: web/api/worker/database/config/types)                             | ✅ pass                                                 |
+| `npm run typecheck` (5 workspaces)                                                                 | ✅ pass                                                 |
+| `npm run lint` (6 workspaces)                                                                      | ✅ pass                                                 |
+| `npm run format:check`                                                                             | ✅ pass                                                 |
+| `npm run test` — 13 unit tests (web 3, worker 3, config 3, api 4)                                  | ✅ pass                                                 |
+| `npm run test:e2e -w @dailylist/api` — Supertest vs real DB+Redis                                  | ✅ pass                                                 |
+| `prisma migrate dev` — migration created & applied; `health_checks` + `_prisma_migrations` present | ✅ pass                                                 |
+| PostgreSQL connectivity (`SELECT version()` → PostgreSQL 18.3)                                     | ✅ pass                                                 |
+| Redis connectivity (`redis-cli ping` → PONG)                                                       | ✅ pass                                                 |
+| Manual: built API served `/health` → `{"status":"ok", database up, redis up}`                      | ✅ pass                                                 |
+| Manual: built worker processed startup heartbeat job (209ms)                                       | ✅ pass                                                 |
+| Manual: built web served landing page (HTTP 200, correct title/content)                            | ✅ pass                                                 |
+| CI workflow (`.github/workflows/ci.yml`)                                                           | ⚠ not yet executed — no remote repo; runs on first push |
 
 ## Known issues / notes
 
