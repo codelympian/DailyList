@@ -9,7 +9,9 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
   app.use(cookieParser());
-  app.enableCors({ origin: env.API_CORS_ORIGIN, credentials: true });
+  // Accepts a comma-separated list, e.g. "http://localhost:3000,http://localhost:3001"
+  const corsOrigins = env.API_CORS_ORIGIN.split(',').map((origin) => origin.trim());
+  app.enableCors({ origin: corsOrigins, credentials: true });
   app.enableShutdownHooks();
 
   await app.listen(env.API_PORT);
