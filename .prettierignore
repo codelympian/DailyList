@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+package-lock.json
+infrastructure/devstack/pgdata/
+infrastructure/devstack/redis/
+packages/database/prisma/migrations/

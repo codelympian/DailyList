@@ -1,0 +1,22 @@
+// Dailylist database schema.
+// Phase 0 intentionally contains no domain models — those arrive with
+// their phases (users/businesses in Phase 1, customers in Phase 2, ...).
+// HealthCheck exists so the migration pipeline and /health endpoint can
+// verify real database connectivity and writes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model HealthCheck {
+  id        String   @id @default(uuid()) @db.Uuid
+  service   String
+  checkedAt DateTime @default(now()) @map("checked_at")
+
+  @@map("health_checks")
+}

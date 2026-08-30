@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+
+# Turborepo
+.turbo/
+
+# Environment (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Local dev stack (project-local Postgres data + portable Redis)
+infrastructure/devstack/pgdata/
+infrastructure/devstack/redis/
+infrastructure/devstack/*.log
+infrastructure/devstack/*.pid
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

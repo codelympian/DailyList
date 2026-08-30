@@ -1,0 +1,35 @@
+# Canonical development infrastructure for machines with Docker.
+# On machines without Docker (e.g. this Windows dev box), use:
+#   npm run devstack:start
+# which runs a project-local PostgreSQL instance (port 5433) and portable Redis.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dailylist-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dailylist_dev
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: dailylist-redis
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

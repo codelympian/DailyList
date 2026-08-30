@@ -1,0 +1,36 @@
+{
+  "name": "dailylist",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dailylist — your daily sales assistant.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "db:migrate": "npm run db:migrate -w @dailylist/database",
+    "db:generate": "npm run db:generate -w @dailylist/database",
+    "devstack:start": "powershell -NoProfile -ExecutionPolicy Bypass -File infrastructure/devstack/start-devstack.ps1",
+    "devstack:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File infrastructure/devstack/stop-devstack.ps1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.6",
+    "typescript-eslint": "^8.42.0"
+  },
+  "packageManager": "npm@11.9.0"
+}
