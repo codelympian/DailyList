@@ -283,6 +283,8 @@ export interface BusinessSettingsResponse {
   hotLeadRecencyDays: number;
   minContactIntervalDays: number;
   recentPurchaseSuppressionDays: number;
+  /** Top N: how many customers today's list may contain. */
+  dailyListSize: number;
   updatedAt: string;
 }
 

@@ -12,6 +12,7 @@ export const updateSettingsSchema = z
     hotLeadRecencyDays: z.number().int().min(1).max(365),
     minContactIntervalDays: z.number().int().min(0).max(365),
     recentPurchaseSuppressionDays: z.number().int().min(0).max(365),
+    dailyListSize: z.number().int().min(1).max(100),
   })
   .partial();
 

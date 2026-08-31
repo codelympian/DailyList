@@ -51,6 +51,7 @@ export function toEngineSettings(settings: BusinessSettings): IntelligenceSettin
 function toResponse(settings: BusinessSettings): BusinessSettingsResponse {
   return {
     ...toEngineSettings(settings),
+    dailyListSize: settings.dailyListSize,
     businessId: settings.businessId,
     updatedAt: settings.updatedAt.toISOString(),
   };

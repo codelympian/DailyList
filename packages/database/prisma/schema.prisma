@@ -73,8 +73,9 @@ model Business {
   products     Product[]
   transactions Transaction[]
   leads        Lead[]
-  importJobs   ImportJob[]
-  settings     BusinessSettings?
+  importJobs      ImportJob[]
+  settings        BusinessSettings?
+  recommendations DailyRecommendation[]
 
   @@map("businesses")
 }
@@ -157,6 +158,7 @@ model Customer {
   transactions           Transaction[]
   leads                  Lead[]
   communicationPrefs     CommunicationPreference[]
+  recommendations        DailyRecommendation[]
 
   @@index([businessId, deletedAt, name])
   @@index([businessId, deletedAt, createdAt])
@@ -459,6 +461,8 @@ model BusinessSettings {
   minContactIntervalDays Int @default(7) @map("min_contact_interval_days")
   /// Suppress follow-ups for customers who purchased within this many days.
   recentPurchaseSuppressionDays Int @default(3) @map("recent_purchase_suppression_days")
+  /// How many customers the daily list may contain (Top N).
+  dailyListSize Int @default(20) @map("daily_list_size")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -486,6 +490,65 @@ model CommunicationPreference {
   @@unique([customerId, channel])
   @@index([businessId, channel, optedIn])
   @@map("communication_preferences")
+}
+
+// ============================================================
+// Phase 7 — Daily recommendations (persisted snapshots)
+// ============================================================
+
+/// The card category shown on the daily list. A customer may match several
+/// segments; the engine picks one primary category deterministically.
+enum RecommendationCategory {
+  HOT_LEAD
+  REORDER_DUE
+  DEBTOR
+  LOST_CUSTOMER
+}
+
+enum RecommendationStatus {
+  PENDING
+  CONTACTED
+  COMPLETED
+  SKIPPED
+  DISMISSED
+  CONVERTED
+}
+
+/// One customer on one day's list. Persisted (not recomputed on read) so
+/// history and analytics stay stable even as customer data changes.
+model DailyRecommendation {
+  id         String @id @default(uuid()) @db.Uuid
+  businessId String @map("business_id") @db.Uuid
+  customerId String @map("customer_id") @db.Uuid
+
+  /// Date-only (UTC midnight) key for "today's list".
+  recommendationDate DateTime               @map("recommendation_date") @db.Date
+  category           RecommendationCategory
+  /// Normalized 0–100.
+  score              Int
+  /// All segments matched, for filtering and analytics.
+  segments           String[]
+  reasonCodes        String[]               @map("reason_codes")
+  /// Human-readable "WHY TODAY?" lines, frozen at generation time.
+  reasonText         String[]               @map("reason_text")
+  /// Component-by-component score, for explainability and tuning.
+  scoreBreakdown     Json?                  @map("score_breakdown")
+  /// Filled by the message generation service (Phase 8).
+  suggestedMessage   String?                @map("suggested_message")
+
+  status      RecommendationStatus @default(PENDING)
+  completedAt DateTime?            @map("completed_at")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  /// Prevents duplicate recommendations for the same customer on the same day.
+  @@unique([businessId, customerId, recommendationDate])
+  @@index([businessId, recommendationDate, score(sort: Desc)])
+  @@index([businessId, recommendationDate, status])
+  @@map("daily_recommendations")
 }
 
 model BusinessMembership {

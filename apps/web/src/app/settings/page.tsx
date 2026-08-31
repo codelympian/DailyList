@@ -17,6 +17,12 @@ type SettingKey = keyof Omit<BusinessSettingsResponse, 'businessId' | 'updatedAt
 
 const FIELDS: { key: SettingKey; label: string; hint: string; suffix?: string }[] = [
   {
+    key: 'dailyListSize',
+    label: 'People on today’s list',
+    hint: 'How many customers Dailylist suggests each day. Keep it to what you can actually get through.',
+    suffix: 'customers',
+  },
+  {
     key: 'vipLifetimeSpend',
     label: 'VIP spend threshold',
     hint: 'Customers who have spent at least this much are marked VIP.',

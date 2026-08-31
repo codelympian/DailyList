@@ -9,6 +9,7 @@ import { ImportModule } from './imports/import.module';
 import { IntelligenceModule } from './intelligence/intelligence.module';
 import { LeadModule } from './leads/lead.module';
 import { ProductModule } from './products/product.module';
+import { RecommendationModule } from './recommendations/recommendation.module';
 import { TransactionModule } from './transactions/transaction.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
@@ -30,6 +31,7 @@ import { RedisModule } from './redis/redis.module';
     LeadModule,
     ImportModule,
     IntelligenceModule,
+    RecommendationModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
