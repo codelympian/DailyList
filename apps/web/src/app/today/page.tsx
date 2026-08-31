@@ -145,6 +145,7 @@ function RecommendationCard({
   businessId: string | undefined;
 }) {
   const setStatus = useSetRecommendationStatus(businessId);
+  const [copied, setCopied] = useState(false);
   const meta = CATEGORY_META[recommendation.category];
 
   return (
@@ -176,6 +177,27 @@ function RecommendationCard({
           </p>
         ))}
       </div>
+
+      {recommendation.suggestedMessage && (
+        <div className="mb-3 rounded-xl bg-muted/60 p-3">
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Suggested message
+          </p>
+          <p className="text-sm whitespace-pre-wrap">{recommendation.suggestedMessage}</p>
+          <button
+            type="button"
+            className="mt-2 text-xs font-medium text-primary underline-offset-4 hover:underline"
+            onClick={() => {
+              void navigator.clipboard
+                .writeText(recommendation.suggestedMessage ?? '')
+                .then(() => setCopied(true))
+                .catch(() => setCopied(false));
+            }}
+          >
+            {copied ? 'Copied ✓' : 'Copy message'}
+          </button>
+        </div>
+      )}
 
       <div className="flex gap-2">
         <Button

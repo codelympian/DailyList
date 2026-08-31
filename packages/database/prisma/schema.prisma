@@ -74,8 +74,9 @@ model Business {
   transactions Transaction[]
   leads        Lead[]
   importJobs      ImportJob[]
-  settings        BusinessSettings?
-  recommendations DailyRecommendation[]
+  settings         BusinessSettings?
+  recommendations  DailyRecommendation[]
+  messageTemplates MessageTemplate[]
 
   @@map("businesses")
 }
@@ -549,6 +550,35 @@ model DailyRecommendation {
   @@index([businessId, recommendationDate, score(sort: Desc)])
   @@index([businessId, recommendationDate, status])
   @@map("daily_recommendations")
+}
+
+// ============================================================
+// Phase 8 — Suggested messages
+// ============================================================
+
+enum MessageCategory {
+  HOT_LEAD
+  REORDER
+  DEBTOR
+  REACTIVATION
+}
+
+/// Optional per-business overrides of the built-in deterministic templates.
+/// When absent, the packaged default template for the category is used.
+model MessageTemplate {
+  id         String          @id @default(uuid()) @db.Uuid
+  businessId String          @map("business_id") @db.Uuid
+  category   MessageCategory
+  /// Body with {{placeholders}}; only known, validated placeholders are allowed.
+  body      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, category])
+  @@map("message_templates")
 }
 
 model BusinessMembership {

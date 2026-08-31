@@ -9,6 +9,16 @@ const envSchema = z.object({
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   API_PORT: z.coerce.number().int().positive().default(4000),
   API_CORS_ORIGIN: z.string().default('http://localhost:3000'),
+
+  // --- Optional AI message generation (Phase 8) ---
+  // The product works fully with this off; templates are always the fallback.
+  AI_MESSAGES_ENABLED: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  AI_MESSAGE_MODEL: z.string().default('claude-opus-5'),
+  AI_MESSAGE_TIMEOUT_MS: z.coerce.number().int().positive().default(8000),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

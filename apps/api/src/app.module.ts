@@ -8,6 +8,7 @@ import { HealthModule } from './health/health.module';
 import { ImportModule } from './imports/import.module';
 import { IntelligenceModule } from './intelligence/intelligence.module';
 import { LeadModule } from './leads/lead.module';
+import { MessageModule } from './messages/message.module';
 import { ProductModule } from './products/product.module';
 import { RecommendationModule } from './recommendations/recommendation.module';
 import { TransactionModule } from './transactions/transaction.module';
@@ -31,6 +32,7 @@ import { RedisModule } from './redis/redis.module';
     LeadModule,
     ImportModule,
     IntelligenceModule,
+    MessageModule,
     RecommendationModule,
     HealthModule,
   ],

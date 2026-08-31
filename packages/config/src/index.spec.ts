@@ -28,11 +28,34 @@ describe('loadEnv', () => {
     process.env.DATABASE_URL = 'postgresql://dailylist@localhost:5433/dailylist_test';
     delete process.env.API_PORT;
     delete process.env.API_CORS_ORIGIN;
+    delete process.env.AI_MESSAGES_ENABLED;
+    delete process.env.AI_MESSAGE_MODEL;
 
-    const env = loadEnv();
+    // Load from a directory with no .env, so this asserts the schema's own
+    // defaults rather than whatever the developer's local .env happens to say.
+    const env = loadEnv(os.tmpdir());
 
     expect(env.API_PORT).toBe(4000);
     expect(env.API_CORS_ORIGIN).toBe('http://localhost:3000');
+  });
+
+  it('defaults AI message generation to disabled', () => {
+    process.env.DATABASE_URL = 'postgresql://dailylist@localhost:5433/dailylist_test';
+    delete process.env.AI_MESSAGES_ENABLED;
+    delete process.env.ANTHROPIC_API_KEY;
+
+    const env = loadEnv(os.tmpdir());
+
+    expect(env.AI_MESSAGES_ENABLED).toBe(false);
+    expect(env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(env.AI_MESSAGE_MODEL).toBe('claude-opus-5');
+  });
+
+  it('enables AI only when explicitly set to "true"', () => {
+    process.env.DATABASE_URL = 'postgresql://dailylist@localhost:5433/dailylist_test';
+    process.env.AI_MESSAGES_ENABLED = 'true';
+
+    expect(loadEnv(os.tmpdir()).AI_MESSAGES_ENABLED).toBe(true);
   });
 
   it('throws a readable error when DATABASE_URL is missing', () => {

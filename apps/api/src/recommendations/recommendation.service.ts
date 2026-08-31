@@ -12,6 +12,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { FeatureRepository } from '../intelligence/feature.repository';
 import { SettingsService } from '../intelligence/settings.service';
+import { MessageService } from '../messages/message.service';
 import type { ListRecommendationsQuery } from './recommendation.schemas';
 
 /** Statuses that mean the owner already dealt with this card. */
@@ -57,6 +58,7 @@ export class RecommendationService {
     private readonly prisma: PrismaService,
     private readonly features: FeatureRepository,
     private readonly settings: SettingsService,
+    private readonly messages: MessageService,
   ) {}
 
   /**
@@ -148,6 +150,9 @@ export class RecommendationService {
     if (staleIds.length > 0) {
       await this.prisma.dailyRecommendation.deleteMany({ where: { id: { in: staleIds } } });
     }
+
+    // Every card ships with a ready-to-send message (deterministic by default).
+    await this.messages.fillMissingForDate(businessId, day);
 
     return this.summary(businessId, day);
   }

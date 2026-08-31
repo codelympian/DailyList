@@ -1,0 +1,21 @@
+{
+  "name": "@dailylist/messaging",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deterministic message templates, fact guardrails, and the optional-AI message generation service. Pure: no SDK or network dependencies.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^24",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "typescript": "^5.9.2"
+  }
+}
