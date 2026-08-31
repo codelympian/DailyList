@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthGate } from '@/components/auth-gate';
+import { IntelligenceCard } from '@/components/intelligence-card';
 import { StatusChip } from '@/components/status-chip';
 import { Timeline } from '@/components/timeline';
 import {
@@ -115,6 +116,8 @@ function CustomerProfile({ customerId }: { customerId: string }) {
           tone={Number(c.outstandingDebt) > 0 ? 'destructive' : undefined}
         />
       </div>
+
+      <IntelligenceCard businessId={business?.id} customerId={c.id} />
 
       <div className="mb-4 flex gap-2">
         <Button render={<Link href={`/transactions/new?customerId=${c.id}`} />}>

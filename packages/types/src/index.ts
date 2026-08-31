@@ -228,6 +228,64 @@ export interface ImportRowSummary {
   duplicateOfCustomerId: string | null;
 }
 
+// ============================================================
+// Customer intelligence (Phase 6)
+// ============================================================
+
+export type Segment =
+  'HOT_LEAD' | 'REORDER_DUE' | 'DEBTOR' | 'LOST_CUSTOMER' | 'REPEAT_CUSTOMER' | 'VIP';
+
+export interface SegmentView {
+  segment: Segment;
+  reasonCodes: string[];
+  /** Human-readable "why", derived from measured data only. */
+  reasons: string[];
+  facts: Record<string, string | number>;
+}
+
+export interface CustomerIntelligenceView {
+  customerId: string;
+  customerName: string;
+  lifecycleStage: LifecycleStage;
+  segments: SegmentView[];
+  /** False when suppression rules forbid contacting them today. */
+  eligible: boolean;
+  suppressionCodes: string[];
+  suppressionReasons: string[];
+  features: {
+    purchaseCount: number;
+    totalSpend: number;
+    outstandingDebt: number;
+    daysSinceLastPurchase: number | null;
+    daysSinceLastContact: number | null;
+    expectedReorderIntervalDays: number | null;
+    reorderIntervalSource: string | null;
+    daysUntilReorderDue: number | null;
+  };
+}
+
+export interface SegmentCounts {
+  counts: Record<Segment, number>;
+  eligibleCounts: Record<Segment, number>;
+  totalCustomers: number;
+  suppressedCustomers: number;
+  computedAt: string;
+}
+
+export interface BusinessSettingsResponse {
+  businessId: string;
+  vipLifetimeSpend: number;
+  repeatCustomerMinPurchases: number;
+  defaultReorderIntervalDays: number;
+  reorderDuePercent: number;
+  lostReorderMultiple: number;
+  lostCustomerDays: number;
+  hotLeadRecencyDays: number;
+  minContactIntervalDays: number;
+  recentPurchaseSuppressionDays: number;
+  updatedAt: string;
+}
+
 /** 409 body when creating/updating a customer collides with an existing identity. */
 export interface DuplicateCustomerError extends ApiErrorBody {
   duplicate: {

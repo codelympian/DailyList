@@ -74,6 +74,7 @@ model Business {
   transactions Transaction[]
   leads        Lead[]
   importJobs   ImportJob[]
+  settings     BusinessSettings?
 
   @@map("businesses")
 }
@@ -141,17 +142,21 @@ model Customer {
   totalSpend      Decimal   @default(0) @map("total_spend") @db.Decimal(14, 2)
   purchaseCount   Int       @default(0) @map("purchase_count")
   lastPurchaseAt  DateTime? @map("last_purchase_at")
-  lastContactedAt DateTime? @map("last_contacted_at")
+  // Contact fatigue tracking (Phase 6).
+  lastContactedAt     DateTime? @map("last_contacted_at")
+  contactAttemptCount Int       @default(0) @map("contact_attempt_count")
+  lastResponseAt      DateTime? @map("last_response_at")
 
   deletedAt DateTime? @map("deleted_at")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  business     Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  identities   CustomerIdentity[]
-  events       CustomerEvent[]
-  transactions Transaction[]
-  leads        Lead[]
+  business               Business                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  identities             CustomerIdentity[]
+  events                 CustomerEvent[]
+  transactions           Transaction[]
+  leads                  Lead[]
+  communicationPrefs     CommunicationPreference[]
 
   @@index([businessId, deletedAt, name])
   @@index([businessId, deletedAt, createdAt])
@@ -418,6 +423,69 @@ model ImportRow {
   @@unique([importJobId, rowNumber])
   @@index([importJobId, status])
   @@map("import_rows")
+}
+
+// ============================================================
+// Phase 6 — Customer intelligence: settings + communication preferences
+// ============================================================
+
+enum CommunicationChannel {
+  WHATSAPP
+  SMS
+  EMAIL
+}
+
+/// Per-business, tunable rules for the deterministic intelligence engine.
+/// Every threshold the engine uses lives here — nothing is hardcoded.
+model BusinessSettings {
+  id         String @id @default(uuid()) @db.Uuid
+  businessId String @unique @map("business_id") @db.Uuid
+
+  /// Lifetime spend at or above which a customer counts as VIP.
+  vipLifetimeSpend Decimal @default(100000) @map("vip_lifetime_spend") @db.Decimal(14, 2)
+  /// Purchases needed to count as a repeat customer.
+  repeatCustomerMinPurchases Int @default(2) @map("repeat_customer_min_purchases")
+  /// Fallback reorder interval when neither product data nor purchase history says otherwise.
+  defaultReorderIntervalDays Int @default(45) @map("default_reorder_interval_days")
+  /// Fraction of the reorder interval after which a reorder counts as "due" (90% = near due).
+  reorderDuePercent Int @default(90) @map("reorder_due_percent")
+  /// Multiple of the reorder interval after which a customer is considered lost.
+  lostReorderMultiple Int @default(3) @map("lost_reorder_multiple")
+  /// Fallback inactivity threshold when no reorder interval is known.
+  lostCustomerDays Int @default(90) @map("lost_customer_days")
+  /// Lead activity within this window counts as recent interest.
+  hotLeadRecencyDays Int @default(14) @map("hot_lead_recency_days")
+  /// Contact fatigue: minimum days between contacting the same customer.
+  minContactIntervalDays Int @default(7) @map("min_contact_interval_days")
+  /// Suppress follow-ups for customers who purchased within this many days.
+  recentPurchaseSuppressionDays Int @default(3) @map("recent_purchase_suppression_days")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@map("business_settings")
+}
+
+/// Consent per channel. The engine must never recommend an opted-out customer.
+model CommunicationPreference {
+  id         String               @id @default(uuid()) @db.Uuid
+  businessId String               @map("business_id") @db.Uuid
+  customerId String               @map("customer_id") @db.Uuid
+  channel    CommunicationChannel
+  optedIn    Boolean              @default(true) @map("opted_in")
+  optedInAt  DateTime?            @map("opted_in_at")
+  optedOutAt DateTime?            @map("opted_out_at")
+  source     String?
+  createdAt  DateTime             @default(now()) @map("created_at")
+  updatedAt  DateTime             @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, channel])
+  @@index([businessId, channel, optedIn])
+  @@map("communication_preferences")
 }
 
 model BusinessMembership {

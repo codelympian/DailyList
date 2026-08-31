@@ -68,6 +68,12 @@ function Dashboard() {
         <Button variant="outline" render={<Link href="/imports" />}>
           📄 Import
         </Button>
+        <Button variant="outline" render={<Link href="/segments" />}>
+          🧠 Segments
+        </Button>
+        <Button variant="outline" render={<Link href="/settings" />}>
+          ⚙️ Settings
+        </Button>
       </div>
 
       <Card>

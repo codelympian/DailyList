@@ -16,6 +16,7 @@
     "@dailylist/config": "*",
     "@dailylist/database": "*",
     "@dailylist/importer": "*",
+    "@dailylist/scoring": "*",
     "@dailylist/types": "*",
     "@dailylist/validation": "*",
     "@nestjs/common": "^11.1.6",
