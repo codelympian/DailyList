@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthGate } from '@/components/auth-gate';
+import { StatusChip } from '@/components/status-chip';
 import { Timeline } from '@/components/timeline';
 import {
   useActiveBusiness,
@@ -13,6 +14,7 @@ import {
   useCustomerTimeline,
   useDeleteCustomer,
 } from '@/hooks/use-customers';
+import { useTransactions } from '@/hooks/use-transactions';
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -28,6 +30,7 @@ function CustomerProfile({ customerId }: { customerId: string }) {
   const { business } = useActiveBusiness();
   const customer = useCustomer(business?.id, customerId);
   const timeline = useCustomerTimeline(business?.id, customerId);
+  const transactions = useTransactions(business?.id, { customerId, page: 1 });
   const deleteCustomer = useDeleteCustomer(business?.id);
 
   if (customer.isPending) {
@@ -93,7 +96,7 @@ function CustomerProfile({ customerId }: { customerId: string }) {
         </div>
       </header>
 
-      <div className="mb-4 grid grid-cols-3 gap-2">
+      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
         <StatCard
           label="Total spend"
           value={`${currency === 'NGN' ? '₦' : ''}${Number(c.totalSpend).toLocaleString()}`}
@@ -103,7 +106,46 @@ function CustomerProfile({ customerId }: { customerId: string }) {
           label="Last purchase"
           value={c.lastPurchaseAt ? new Date(c.lastPurchaseAt).toLocaleDateString() : '—'}
         />
+        <StatCard
+          label="Owes you"
+          value={`₦${Number(c.outstandingDebt).toLocaleString()}`}
+          tone={Number(c.outstandingDebt) > 0 ? 'destructive' : undefined}
+        />
       </div>
+
+      <div className="mb-4">
+        <Button render={<Link href={`/transactions/new?customerId=${c.id}`} />}>
+          ➕ Record sale
+        </Button>
+      </div>
+
+      <Card className="mb-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {transactions.isPending && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {transactions.data && transactions.data.items.length === 0 && (
+            <p className="text-sm text-muted-foreground">No transactions yet.</p>
+          )}
+          <ul className="flex flex-col gap-2">
+            {transactions.data?.items.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/transactions/${t.id}`}
+                  className="flex items-center justify-between gap-2 rounded-lg border p-2.5 text-sm transition-colors hover:bg-muted/50"
+                >
+                  <span className="text-muted-foreground">
+                    {new Date(t.occurredAt).toLocaleDateString()}
+                  </span>
+                  <span className="font-medium">₦{Number(t.amount).toLocaleString()}</span>
+                  <StatusChip status={t.status} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
 
       {c.notes && (
         <Card className="mb-4">
@@ -127,10 +169,14 @@ function CustomerProfile({ customerId }: { customerId: string }) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, tone }: { label: string; value: string; tone?: 'destructive' }) {
   return (
     <div className="rounded-xl border bg-card p-3 text-center">
-      <p className="truncate text-lg font-semibold">{value}</p>
+      <p
+        className={`truncate text-lg font-semibold ${tone === 'destructive' ? 'text-destructive' : ''}`}
+      >
+        {value}
+      </p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );

@@ -55,9 +55,12 @@ function Dashboard() {
         </Button>
       </header>
 
-      <div className="mb-4">
+      <div className="mb-4 flex gap-2">
         <Button variant="outline" render={<Link href="/customers" />}>
           👥 Customers
+        </Button>
+        <Button variant="outline" render={<Link href="/products" />}>
+          📦 Products
         </Button>
       </div>
 

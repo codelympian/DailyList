@@ -68,8 +68,10 @@ model Business {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  memberships BusinessMembership[]
-  customers   Customer[]
+  memberships  BusinessMembership[]
+  customers    Customer[]
+  products     Product[]
+  transactions Transaction[]
 
   @@map("businesses")
 }
@@ -142,9 +144,10 @@ model Customer {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
-  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  identities CustomerIdentity[]
-  events     CustomerEvent[]
+  business     Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  identities   CustomerIdentity[]
+  events       CustomerEvent[]
+  transactions Transaction[]
 
   @@index([businessId, deletedAt, name])
   @@index([businessId, deletedAt, createdAt])
@@ -182,6 +185,111 @@ model CustomerEvent {
 
   @@index([businessId, customerId, occurredAt(sort: Desc)])
   @@map("customer_events")
+}
+
+// ============================================================
+// Phase 3 — Products, transactions, payments
+// ============================================================
+
+enum TransactionStatus {
+  PAID
+  PARTIALLY_PAID
+  UNPAID
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  POS
+  CARD
+  OTHER
+}
+
+model Product {
+  id                  String   @id @default(uuid()) @db.Uuid
+  businessId          String   @map("business_id") @db.Uuid
+  name                String
+  sku                 String?
+  category            String?
+  price               Decimal  @db.Decimal(14, 2)
+  costPrice           Decimal? @map("cost_price") @db.Decimal(14, 2)
+  // Days after a purchase when the customer is likely to need this again
+  // — drives REORDER_DUE recommendations (Phase 6/7).
+  reorderIntervalDays Int?     @map("reorder_interval_days")
+  active              Boolean  @default(true)
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  business Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  items    TransactionItem[]
+
+  @@unique([businessId, sku])
+  @@index([businessId, active, name])
+  @@map("products")
+}
+
+model Transaction {
+  id         String            @id @default(uuid()) @db.Uuid
+  businessId String            @map("business_id") @db.Uuid
+  customerId String            @map("customer_id") @db.Uuid
+  // Total sale value; amountDue is always derived as amount - amountPaid.
+  amount        Decimal           @db.Decimal(14, 2)
+  amountPaid    Decimal           @default(0) @map("amount_paid") @db.Decimal(14, 2)
+  // Derived from amount/amountPaid on every write (REFUNDED/CANCELLED are explicit).
+  status        TransactionStatus
+  occurredAt    DateTime          @map("occurred_at")
+  paymentMethod PaymentMethod?    @map("payment_method")
+  source        CustomerSource    @default(MANUAL)
+  externalId    String?           @map("external_id")
+  notes         String?
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  business Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items    TransactionItem[]
+  payments Payment[]
+
+  @@unique([businessId, externalId])
+  @@index([businessId, customerId, occurredAt(sort: Desc)])
+  @@index([businessId, status])
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id            String  @id @default(uuid()) @db.Uuid
+  businessId    String  @map("business_id") @db.Uuid
+  transactionId String  @map("transaction_id") @db.Uuid
+  productId     String? @map("product_id") @db.Uuid
+  // Snapshot of the product name at sale time (survives product edits).
+  description String
+  quantity    Int
+  unitPrice   Decimal @map("unit_price") @db.Decimal(14, 2)
+  subtotal    Decimal @db.Decimal(14, 2)
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product     Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([transactionId])
+  @@index([businessId, productId])
+  @@map("transaction_items")
+}
+
+model Payment {
+  id            String        @id @default(uuid()) @db.Uuid
+  businessId    String        @map("business_id") @db.Uuid
+  transactionId String        @map("transaction_id") @db.Uuid
+  amount        Decimal       @db.Decimal(14, 2)
+  method        PaymentMethod @default(CASH)
+  occurredAt    DateTime      @map("occurred_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId])
+  @@map("payments")
 }
 
 model BusinessMembership {

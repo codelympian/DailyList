@@ -99,6 +99,8 @@ export interface CustomerDetail extends CustomerSummary {
   lastContactedAt: string | null;
   updatedAt: string;
   identities: CustomerIdentitySummary[];
+  /** Sum of amount - amountPaid over UNPAID/PARTIALLY_PAID transactions. */
+  outstandingDebt: string;
 }
 
 export interface TimelineEvent {
@@ -107,6 +109,61 @@ export interface TimelineEvent {
   title: string;
   payload: Record<string, unknown> | null;
   occurredAt: string;
+}
+
+// ============================================================
+// Products + transactions (Phase 3)
+// ============================================================
+
+export type TransactionStatus = 'PAID' | 'PARTIALLY_PAID' | 'UNPAID' | 'REFUNDED' | 'CANCELLED';
+export type PaymentMethod = 'CASH' | 'TRANSFER' | 'POS' | 'CARD' | 'OTHER';
+
+export interface ProductSummary {
+  id: string;
+  name: string;
+  sku: string | null;
+  category: string | null;
+  price: string;
+  costPrice: string | null;
+  reorderIntervalDays: number | null;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionItemSummary {
+  id: string;
+  productId: string | null;
+  description: string;
+  quantity: number;
+  unitPrice: string;
+  subtotal: string;
+}
+
+export interface PaymentSummary {
+  id: string;
+  amount: string;
+  method: PaymentMethod;
+  occurredAt: string;
+}
+
+export interface TransactionSummary {
+  id: string;
+  customerId: string;
+  customerName: string;
+  amount: string;
+  amountPaid: string;
+  amountDue: string;
+  status: TransactionStatus;
+  occurredAt: string;
+  paymentMethod: PaymentMethod | null;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface TransactionDetail extends TransactionSummary {
+  items: TransactionItemSummary[];
+  payments: PaymentSummary[];
 }
 
 /** 409 body when creating/updating a customer collides with an existing identity. */

@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma, Customer, CustomerIdentity } from '@dailylist/database';
+import { Prisma, type Customer, type CustomerIdentity } from '@dailylist/database';
 import type { CustomerDetail, CustomerSummary, Paginated, TimelineEvent } from '@dailylist/types';
 import {
   normalizePhone,
@@ -48,7 +48,7 @@ export class CustomerService {
       });
     });
 
-    return toDetail(customer);
+    return toDetail(customer, await this.outstandingDebt(businessId, customer.id));
   }
 
   async list(businessId: string, query: ListCustomersQuery): Promise<Paginated<CustomerSummary>> {
@@ -86,7 +86,20 @@ export class CustomerService {
 
   async get(businessId: string, customerId: string): Promise<CustomerDetail> {
     const customer = await this.findActive(businessId, customerId);
-    return toDetail(customer);
+    return toDetail(customer, await this.outstandingDebt(businessId, customerId));
+  }
+
+  /** Debt is always derived from transactions — never stored, never drifts. */
+  private async outstandingDebt(businessId: string, customerId: string): Promise<string> {
+    const rows = await this.prisma.transaction.findMany({
+      where: { businessId, customerId, status: { in: ['UNPAID', 'PARTIALLY_PAID'] } },
+      select: { amount: true, amountPaid: true },
+    });
+    const debt = rows.reduce(
+      (sum, row) => sum.plus(row.amount.minus(row.amountPaid)),
+      new Prisma.Decimal(0),
+    );
+    return debt.toFixed(2);
   }
 
   async update(
@@ -148,7 +161,7 @@ export class CustomerService {
       });
     });
 
-    return toDetail(customer);
+    return toDetail(customer, await this.outstandingDebt(businessId, customerId));
   }
 
   /** Soft delete: history is preserved, identities are freed for reuse. */
@@ -299,7 +312,7 @@ function toSummary(customer: Customer): CustomerSummary {
   };
 }
 
-function toDetail(customer: CustomerWithIdentities): CustomerDetail {
+function toDetail(customer: CustomerWithIdentities, outstandingDebt: string): CustomerDetail {
   return {
     ...toSummary(customer),
     notes: customer.notes,
@@ -311,6 +324,7 @@ function toDetail(customer: CustomerWithIdentities): CustomerDetail {
       type: identity.type,
       value: identity.value,
     })),
+    outstandingDebt,
   };
 }
 
