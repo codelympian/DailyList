@@ -5,7 +5,7 @@ description: "Layer A interaction-mechanics reference anchored to the beui.dev c
 
 # Interaction Mechanics — beui.dev-Anchored
 
-Style skills decide how a surface looks. This file decides how it *moves and responds* — spring physics, layout morphs, enter/exit orchestration, gesture feel, and reduced-motion discipline. It stacks on top of any Layer A style skill and any Layer B brand, exactly like `layout-skill.md`, and adds ZERO visual direction: color, type, and material still come from the style skill and `DESIGN.md`.
+Style skills decide how a surface looks. This file decides how it _moves and responds_ — spring physics, layout morphs, enter/exit orchestration, gesture feel, and reduced-motion discipline. It stacks on top of any Layer A style skill and any Layer B brand, exactly like `layout-skill.md`, and adds ZERO visual direction: color, type, and material still come from the style skill and `DESIGN.md`.
 
 Load this whenever the deliverable includes interaction feel: micro-interactions, animated components, transitions, hover/press/focus/state feedback, gestures, loading/success/error morphs, animated tabs/menus/modals/drawers/toasts — or the user says "make it feel alive", "polish the interactions", "add micro-interactions".
 
@@ -39,91 +39,91 @@ Categories are `motion` (primitives) and `blocks` (composed patterns). When the 
 
 ### Buttons, state feedback, and progress
 
-| Pattern (slug) | Mechanism | Reach for it when |
-|---|---|---|
-| `button` | Spring press; StatefulButton idle → loading → success/error with blur-swap slots and morphing width; MagneticButton cursor pull | Any submit/CTA that has async states — never leave a button state-less |
-| `action-swap` | Text/icon swap with blur motion | Copy → check, send → stop, any label that changes meaning in place |
-| `expanding-arrow-button` | Expanding, hold-to-confirm, and slide CTA interactions | Expressive marketing CTAs, destructive hold-to-confirm |
-| `animated-badge` | Animated state icons, pulse feedback | Connection/status dots, live activity indicators |
-| `loader` | 17 variants incl. terminal-ascii; reduced motion swaps every transform for an opacity pulse | Any loading state; copy its reduced-motion contract even when hand-rolling |
-| `otp-input` | Gliding focus ring, per-slot digit roll, error shake, success check draw | Code entry, verification flows |
-| `file-upload` | Progress rows, retry/remove, reduced-motion-safe state changes | Upload queues, long-running item lists |
-| `feedback-widget` | Trigger morphs into a popup with sending/success/retry states | Corner feedback affordances, inline report flows |
+| Pattern (slug)           | Mechanism                                                                                                                       | Reach for it when                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `button`                 | Spring press; StatefulButton idle → loading → success/error with blur-swap slots and morphing width; MagneticButton cursor pull | Any submit/CTA that has async states — never leave a button state-less     |
+| `action-swap`            | Text/icon swap with blur motion                                                                                                 | Copy → check, send → stop, any label that changes meaning in place         |
+| `expanding-arrow-button` | Expanding, hold-to-confirm, and slide CTA interactions                                                                          | Expressive marketing CTAs, destructive hold-to-confirm                     |
+| `animated-badge`         | Animated state icons, pulse feedback                                                                                            | Connection/status dots, live activity indicators                           |
+| `loader`                 | 17 variants incl. terminal-ascii; reduced motion swaps every transform for an opacity pulse                                     | Any loading state; copy its reduced-motion contract even when hand-rolling |
+| `otp-input`              | Gliding focus ring, per-slot digit roll, error shake, success check draw                                                        | Code entry, verification flows                                             |
+| `file-upload`            | Progress rows, retry/remove, reduced-motion-safe state changes                                                                  | Upload queues, long-running item lists                                     |
+| `feedback-widget`        | Trigger morphs into a popup with sending/success/retry states                                                                   | Corner feedback affordances, inline report flows                           |
 
 ### Selection and form controls
 
-| Pattern (slug) | Mechanism | Reach for it when |
-|---|---|---|
-| `switch` | Spring-driven thumb with press feedback | Boolean toggles |
-| `checkbox` | Draw-on checkmark, indeterminate support | Multi-select, tree selection |
-| `radio` | Gliding `layoutId` indicator dot | Single-select groups |
-| `input` | Label, icons, error shake, success check draw | Validated text entry |
-| `select` | Panel bouncily unfolds from the trigger; Morph variant grows the trigger into the panel | Dropdown selection with spatial continuity |
-| `range-slider` | Bouncy vertical-bar thumb gliding between snapped steps | Stepped value entry |
-| `wheel-picker` | iOS-style 3D drum on native momentum scroll with notch snap | Date/time or option drums, mobile-feel pickers |
-| `availability-scheduler` | Per-day spring toggles, blur-slide range add/remove | Schedule/slot editors |
+| Pattern (slug)           | Mechanism                                                                               | Reach for it when                              |
+| ------------------------ | --------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| `switch`                 | Spring-driven thumb with press feedback                                                 | Boolean toggles                                |
+| `checkbox`               | Draw-on checkmark, indeterminate support                                                | Multi-select, tree selection                   |
+| `radio`                  | Gliding `layoutId` indicator dot                                                        | Single-select groups                           |
+| `input`                  | Label, icons, error shake, success check draw                                           | Validated text entry                           |
+| `select`                 | Panel bouncily unfolds from the trigger; Morph variant grows the trigger into the panel | Dropdown selection with spatial continuity     |
+| `range-slider`           | Bouncy vertical-bar thumb gliding between snapped steps                                 | Stepped value entry                            |
+| `wheel-picker`           | iOS-style 3D drum on native momentum scroll with notch snap                             | Date/time or option drums, mobile-feel pickers |
+| `availability-scheduler` | Per-day spring toggles, blur-slide range add/remove                                     | Schedule/slot editors                          |
 
 ### Navigation and wayfinding
 
-| Pattern (slug) | Mechanism | Reach for it when |
-|---|---|---|
-| `tabs` | Pill/segment/underline with a spring `layoutId` indicator | Tab bars, view-mode selectors |
-| `expandable-tabs` | Active icon tab expands to a labelled pill; panel morphs height, slides direction-aware | Compact tab bars with rich panels |
-| `shared-layout-bg` | Pill glides between hovered items via shared layout, blur enter/exit | Sidebar/menu hover and active states |
-| `dock` | macOS-style grouped actions with a gliding active pill | Toolbars, grouped action rails |
-| `bounce-sidebar` | Active dot jumps between destinations on a curved spring path | Vertical navigation with a playful indicator |
-| `preview-rail` | Compact ticks form a hover pyramid and reveal a floating destination preview | Dense navigation rails, session/thread switchers |
-| `expandable-action-bar` | Icon actions expand into labelled controls on hover/focus | Compact action clusters |
-| `overflow-actions` | Connected pill rail springs open to reveal extra controls | Primary-plus-overflow action groups |
-| `command-palette` | Fuzzy filter with a spring-animated active row | Cmd-K surfaces |
-| `bloom-menu` | Button morphs into a menu blooming iris-out from center with radial stagger | Radial/launcher menus |
+| Pattern (slug)          | Mechanism                                                                               | Reach for it when                                |
+| ----------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `tabs`                  | Pill/segment/underline with a spring `layoutId` indicator                               | Tab bars, view-mode selectors                    |
+| `expandable-tabs`       | Active icon tab expands to a labelled pill; panel morphs height, slides direction-aware | Compact tab bars with rich panels                |
+| `shared-layout-bg`      | Pill glides between hovered items via shared layout, blur enter/exit                    | Sidebar/menu hover and active states             |
+| `dock`                  | macOS-style grouped actions with a gliding active pill                                  | Toolbars, grouped action rails                   |
+| `bounce-sidebar`        | Active dot jumps between destinations on a curved spring path                           | Vertical navigation with a playful indicator     |
+| `preview-rail`          | Compact ticks form a hover pyramid and reveal a floating destination preview            | Dense navigation rails, session/thread switchers |
+| `expandable-action-bar` | Icon actions expand into labelled controls on hover/focus                               | Compact action clusters                          |
+| `overflow-actions`      | Connected pill rail springs open to reveal extra controls                               | Primary-plus-overflow action groups              |
+| `command-palette`       | Fuzzy filter with a spring-animated active row                                          | Cmd-K surfaces                                   |
+| `bloom-menu`            | Button morphs into a menu blooming iris-out from center with radial stagger             | Radial/launcher menus                            |
 
 ### Overlays and surfaces
 
-| Pattern (slug) | Mechanism | Reach for it when |
-|---|---|---|
-| `tooltip` | Blur enter/exit, spring spawn | Hover/focus hints |
-| `popover` | Gooey SVG-filter ooze from the trigger; Morph variant clip-morphs from the trigger corner | Anchored panels that should feel attached to their trigger |
-| `context-menu` | Pointer-origin clip morph, gliding active row, keyboard nav, typeahead, long-press | Right-click and long-press menus |
-| `morphing-modal` | One panel morphs height between inner views, blur cross-fade on content | Multi-step dialogs, settings panes |
-| `center-morph-modal` | Surface unfolds from its exact center toward every edge and folds back | Focused confirm/detail modals |
-| `drawer` | Spring side panel, backdrop blur, body scroll lock, esc-to-close | Side panels, inspector panes |
-| `bottom-sheet` | Draggable sheet with snap points, inertia, glass surface | Mobile-feel sheets on any platform |
-| `dynamic-island` | Pill morphs between live-activity views with bouncy shell resize and blur crossfades | Live status surfaces, compact expanding widgets |
-| `notification-stack` | Cards spring from a stacked summary into a readable list on hover/focus/tap | Notification centers, grouped alerts |
-| `animated-toast-stack` | Status morphs, swipe dismissal, layout-aware stacking | Toast systems — layout-aware stacking is the bar |
-| `theme-toggle` | Full-page clip-path reveal via the View Transition API | Theme switching that should feel like one gesture |
+| Pattern (slug)         | Mechanism                                                                                 | Reach for it when                                          |
+| ---------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `tooltip`              | Blur enter/exit, spring spawn                                                             | Hover/focus hints                                          |
+| `popover`              | Gooey SVG-filter ooze from the trigger; Morph variant clip-morphs from the trigger corner | Anchored panels that should feel attached to their trigger |
+| `context-menu`         | Pointer-origin clip morph, gliding active row, keyboard nav, typeahead, long-press        | Right-click and long-press menus                           |
+| `morphing-modal`       | One panel morphs height between inner views, blur cross-fade on content                   | Multi-step dialogs, settings panes                         |
+| `center-morph-modal`   | Surface unfolds from its exact center toward every edge and folds back                    | Focused confirm/detail modals                              |
+| `drawer`               | Spring side panel, backdrop blur, body scroll lock, esc-to-close                          | Side panels, inspector panes                               |
+| `bottom-sheet`         | Draggable sheet with snap points, inertia, glass surface                                  | Mobile-feel sheets on any platform                         |
+| `dynamic-island`       | Pill morphs between live-activity views with bouncy shell resize and blur crossfades      | Live status surfaces, compact expanding widgets            |
+| `notification-stack`   | Cards spring from a stacked summary into a readable list on hover/focus/tap               | Notification centers, grouped alerts                       |
+| `animated-toast-stack` | Status morphs, swipe dismissal, layout-aware stacking                                     | Toast systems — layout-aware stacking is the bar           |
+| `theme-toggle`         | Full-page clip-path reveal via the View Transition API                                    | Theme switching that should feel like one gesture          |
 
 ### Content, data, and gestures
 
-| Pattern (slug) | Mechanism | Reach for it when |
-|---|---|---|
-| `bouncy-accordion` | Single-open accordion with weighted spring layout, reduced-motion-safe reveals | Disclosure groups, expandable rows |
-| `table` | Virtualized 10k+ rows, sortable, resizable, minimal reduced-motion-safe motion | Data grids — proof that restraint is also a motion decision |
-| `infinite-masonry` | Virtualized variable-height masonry with progressive load | Media/card walls |
-| `swipeable-list` | Rows swipe to reveal contextual actions | Mobile-style lists with hidden actions |
-| `pull-to-refresh` | Drag resistance, threshold feedback, async refresh | Refreshable feeds |
-| `marquee` | Infinite horizontal/vertical scroll, pause on hover | Logo walls, tickers |
-| `text-animation` | Spring reveals, chromatic sweeps, shimmer loading, letter-cascade swaps | Hero copy, streaming/loading text |
-| `number` | Count-up values, rolling digit tickers | Metrics, token/cost counters |
-| `cylinder-carousel` | Items line a 3D cylinder with springy glide and snap | Showcase carousels |
-| `knockout-bracket` | Animated tournament fixtures paging through rounds | Bracket/progression views |
-| `prediction-market` / `swap` / `wallet-card` | Trade tickets, morphing swap views, morphing account surfaces | Finance-shaped composite widgets |
-| `not-found` | Five animated 404 styles | Error pages that keep the product's feel |
+| Pattern (slug)                               | Mechanism                                                                      | Reach for it when                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| `bouncy-accordion`                           | Single-open accordion with weighted spring layout, reduced-motion-safe reveals | Disclosure groups, expandable rows                          |
+| `table`                                      | Virtualized 10k+ rows, sortable, resizable, minimal reduced-motion-safe motion | Data grids — proof that restraint is also a motion decision |
+| `infinite-masonry`                           | Virtualized variable-height masonry with progressive load                      | Media/card walls                                            |
+| `swipeable-list`                             | Rows swipe to reveal contextual actions                                        | Mobile-style lists with hidden actions                      |
+| `pull-to-refresh`                            | Drag resistance, threshold feedback, async refresh                             | Refreshable feeds                                           |
+| `marquee`                                    | Infinite horizontal/vertical scroll, pause on hover                            | Logo walls, tickers                                         |
+| `text-animation`                             | Spring reveals, chromatic sweeps, shimmer loading, letter-cascade swaps        | Hero copy, streaming/loading text                           |
+| `number`                                     | Count-up values, rolling digit tickers                                         | Metrics, token/cost counters                                |
+| `cylinder-carousel`                          | Items line a 3D cylinder with springy glide and snap                           | Showcase carousels                                          |
+| `knockout-bracket`                           | Animated tournament fixtures paging through rounds                             | Bracket/progression views                                   |
+| `prediction-market` / `swap` / `wallet-card` | Trade tickets, morphing swap views, morphing account surfaces                  | Finance-shaped composite widgets                            |
+| `not-found`                                  | Five animated 404 styles                                                       | Error pages that keep the product's feel                    |
 
 ### Ambience and scroll
 
-| Pattern (slug) | Mechanism | Reach for it when |
-|---|---|---|
-| `tilt-card` | 3D perspective tilt with cursor-tracked glare | Hero/product cards that should feel physical |
-| `shader-background` | Canvas shader variants (mesh gradient, grain, warp, waves…); reduced motion freezes them | Atmospheric backgrounds with dimension |
-| `scroll-animation` | Lenis smooth-scroll provider plus a reading-progress indicator | Scroll-driven storytelling |
+| Pattern (slug)      | Mechanism                                                                                | Reach for it when                            |
+| ------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `tilt-card`         | 3D perspective tilt with cursor-tracked glare                                            | Hero/product cards that should feel physical |
+| `shader-background` | Canvas shader variants (mesh gradient, grain, warp, waves…); reduced motion freezes them | Atmospheric backgrounds with dimension       |
+| `scroll-animation`  | Lenis smooth-scroll provider plus a reading-progress indicator                           | Scroll-driven storytelling                   |
 
 ## 4. Mechanics rules
 
 These sharpen the shared axioms for interaction work; none of them replace the style skill.
 
-- **Motion serves meaning.** Every animation maps to a real interaction, state change, or affordance. A hover that changes nothing is slop — beui.dev patterns all animate *state*, never decoration.
+- **Motion serves meaning.** Every animation maps to a real interaction, state change, or affordance. A hover that changes nothing is slop — beui.dev patterns all animate _state_, never decoration.
 - **Reduced motion is part of the component, not an afterthought.** Every beui.dev component ships a reduced-motion path; match that bar. Web: `prefers-reduced-motion: reduce` disables or replaces every transform-based animation (the `loader` pattern's opacity-pulse swap is the model). React Native: respect the system reduce-motion setting.
 - **GPU-composited properties only** — `transform`, `opacity`, `filter`. Never animate layout properties; morph layout through shared-layout (`layoutId`) or measured height primitives instead.
 - **Springs move things; easings tint things.** Spatial movement (position, scale, layout morphs) wants spring physics so it stays interruptible and retargetable. Color, opacity, and blur want short duration + easing. Do not put a fixed-duration tween on a gesture-driven surface.

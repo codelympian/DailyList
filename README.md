@@ -68,6 +68,7 @@ npm run dev
 | `npm run build`                      | Build all workspaces (topologically, via Turbo)  |
 | `npm run test`                       | Run unit tests in all workspaces                 |
 | `npm run test:e2e -w @dailylist/api` | API integration tests (needs DB + Redis)         |
+| `npm run test:e2e -w @dailylist/web` | Browser E2E, mobile + desktop (needs the API)    |
 | `npm run lint`                       | Lint all workspaces                              |
 | `npm run typecheck`                  | Typecheck all workspaces                         |
 | `npm run format`                     | Prettier write                                   |
@@ -75,8 +76,19 @@ npm run dev
 | `npm run devstack:start`             | Start local no-Docker Postgres + Redis (Windows) |
 | `npm run devstack:stop`              | Stop the local dev stack                         |
 
+### Running the browser E2E suite
+
+```bash
+npm run build                       # API and web must be built
+node apps/api/dist/main.js          # start the API on :4000
+npm run test:e2e -w @dailylist/web  # Playwright starts the web app itself
+```
+
 ## Development rules
 
-The MVP is built strictly in phases (0–10). A phase is complete only when it is
-implemented, tested, linted, typechecked, built, and documented. See
-[docs/architecture.md](docs/architecture.md) and [docs/phases/](docs/phases/) for status.
+The MVP is built strictly in phases (0–10) — **all eleven are complete**. A phase
+is done only when it is implemented, tested, linted, typechecked, built and
+documented. See [docs/architecture.md](docs/architecture.md) and
+[docs/phases/](docs/phases/) for what each phase delivered and how it was verified.
+
+`.claude/skills/dailylist-phase/` encodes that workflow for future sessions.

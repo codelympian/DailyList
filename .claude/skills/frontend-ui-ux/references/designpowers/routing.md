@@ -4,13 +4,13 @@
 
 ## Phase Routing
 
-| User intent or workflow phase | Load or instruct | Required handoff from designpowers |
-|---|---|---|
-| Ambiguous or multi-step web UI request; any request needing a plan | `/ulw-plan` plus this reference's `lane-a-direction.md` | Provide design discovery prompts, target users, inclusive personas, taste direction, open owner decisions, and design debt policy as planning inputs. |
-| Approved plan execution; continuing an OpenAgent plan | `/ulw-execute` plus `lane-b-execution.md` | Keep execution under Boulder/ledger discipline and include current design-state constraints in worker assignments. |
-| Building, styling, redesigning, auditing, or performance-checking a web UI | frontend `design` + `perfection`; add `lane-b-execution.md` when designpowers context affects implementation | Preserve the frontend `DESIGN.md` gate, design/perfection routing, React tooling, real-browser checks, and implementation standards. |
-| Screenshots, visual regressions, clone fidelity, layout quality, alpha/CJK checks, or design QA | `/visual-qa` plus `lane-c-review.md` | Run objective evidence capture before design judgment and feed the same artifacts into persona/accessibility/heuristic review. |
-| Final implementation approval, QA my work, review changes, or significant completed implementation | `/review-work` plus `lane-c-review.md` and `lane-d-memory.md` | Include the design brief, state file path, visual artifacts, unresolved design debt, and accessibility-debt acknowledgements as review inputs. |
+| User intent or workflow phase                                                                      | Load or instruct                                                                                             | Required handoff from designpowers                                                                                                                    |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ambiguous or multi-step web UI request; any request needing a plan                                 | `/ulw-plan` plus this reference's `lane-a-direction.md`                                                      | Provide design discovery prompts, target users, inclusive personas, taste direction, open owner decisions, and design debt policy as planning inputs. |
+| Approved plan execution; continuing an OpenAgent plan                                              | `/ulw-execute` plus `lane-b-execution.md`                                                                    | Keep execution under Boulder/ledger discipline and include current design-state constraints in worker assignments.                                    |
+| Building, styling, redesigning, auditing, or performance-checking a web UI                         | frontend `design` + `perfection`; add `lane-b-execution.md` when designpowers context affects implementation | Preserve the frontend `DESIGN.md` gate, design/perfection routing, React tooling, real-browser checks, and implementation standards.                  |
+| Screenshots, visual regressions, clone fidelity, layout quality, alpha/CJK checks, or design QA    | `/visual-qa` plus `lane-c-review.md`                                                                         | Run objective evidence capture before design judgment and feed the same artifacts into persona/accessibility/heuristic review.                        |
+| Final implementation approval, QA my work, review changes, or significant completed implementation | `/review-work` plus `lane-c-review.md` and `lane-d-memory.md`                                                | Include the design brief, state file path, visual artifacts, unresolved design debt, and accessibility-debt acknowledgements as review inputs.        |
 
 ## Planning Through `/ulw-plan`
 

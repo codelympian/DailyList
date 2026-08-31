@@ -1,4 +1,3 @@
-
 # Frontend Design Router
 
 You are an elite frontend design engineer. Your only job in this skill is to **route correctly**: pick the right reference file(s), load them into context, then execute with their guidance. The reference files contain the actual design rules — this file just decides which to consult.
@@ -40,7 +39,7 @@ Before touching any UI code, before routing to any reference, before even thinki
 2. Identify the branch: greenfield setup, existing UI with implicit patterns/components, or existing UI with no reusable component layer.
 3. **Greenfield setup:** if the user gave no concrete visual reference, use `_INDEX.md` to shortlist 2-3 plausible Layer B references, then read exactly one Layer A style skill and one Layer B brand/design-system reference in full — every line, no partial reads; use `open-design` only when the curated set has no fit. Open `DESIGN.md` with a `## 0. Research Log` recording each research lane's deliverable (embedded-reference shortlist + pick, lazyweb screens viewed, imagen drafts — see the SKILL.md workflow); a lane with no line did not run. Treat those references as source material, not mood labels: extract tokens, layout grammar, component anatomy, interaction states, motion, and taste decisions into `DESIGN.md`, then recombine them into project-specific primitives. Customize for the user's product and content, but do not freestyle past the selected references; never copy logos, trademarked assets, or brand-specific copy.
    - **Commit a distinctive direction BEFORE extracting tokens.** In 1-2 sentences, name the atmosphere, the signature material, the color story, and the one moment a visitor will remember. For an expressive brief, sketch 2-3 genuinely different directions and pick the boldest one you can defend with the loaded reference; do not average them, because the average IS the generic default this skill exists to beat. A locked, never-revisited one-shot decision is how a page ends up flat.
-   - **The reference's distinctive material MUST survive extraction (expressive briefs).** The common failure is loading a rich reference and then distilling it into a generic dark-SaaS token set. Your `DESIGN.md` must carry the *non-default* decisions forward and name which reference each came from: the actual elevation recipe (the specific layers that make a surface read as glass/glossy, not a single blur), a multi-stop perceptual color ramp (not one brand hex reused at varied opacity), the explicit display/body/mono type choices, and one signature interaction. Self-check before writing code: if your `DESIGN.md` could describe any generic dark SaaS, you flattened the reference — go back and put the specific material in.
+   - **The reference's distinctive material MUST survive extraction (expressive briefs).** The common failure is loading a rich reference and then distilling it into a generic dark-SaaS token set. Your `DESIGN.md` must carry the _non-default_ decisions forward and name which reference each came from: the actual elevation recipe (the specific layers that make a surface read as glass/glossy, not a single blur), a multi-stop perceptual color ramp (not one brand hex reused at varied opacity), the explicit display/body/mono type choices, and one signature interaction. Self-check before writing code: if your `DESIGN.md` could describe any generic dark SaaS, you flattened the reference — go back and put the specific material in.
 4. **Existing UI with implicit patterns/components:** extract the colors, typography, spacing, primitives, states, and motion already in use. Write `DESIGN.md` to codify what exists before changing UI code.
 5. **Existing UI with no reusable component layer:** STOP and ask whether to preserve the current style with copy-nearby edits or extract a `DESIGN.md` plus reusable components first. Do not silently choose the cheaper path or the larger refactor.
 6. Finish the triage at the Primitive Showcase Gate below.
@@ -57,7 +56,6 @@ Before touching any UI code, before routing to any reference, before even thinki
 ### Primitive Showcase Gate (MANDATORY)
 
 **Do not proceed to product screens until `DESIGN.md` exists, Section 5 names the reusable primitives and their states, and each primitive plus required state passes mobile/tablet/desktop visual QA in a component showcase or equivalent state harness.** Skipping this gate ships ad-hoc-styled product screens and re-enters the redesign loop.
-
 
 ## Phase 0.5 — React Dev Tooling Gate (MANDATORY for React projects)
 
@@ -91,7 +89,6 @@ Open the entry file. Each tool must sit behind a `NODE_ENV === 'development'` or
 
 **This gate is non-negotiable for React projects.** No dev tooling = the agent flies blind on render perf and gets 2× slower edit cycles. Period.
 
-
 ## Routing decision flow
 
 Run through this in order and stop at the first match. Do not skip — earlier rules dominate later ones.
@@ -102,7 +99,7 @@ Phrasings: "make it look like Linear", "Stripe-style buttons", "Notion-feel side
 
 **Action:** Open `_INDEX.md`, find the brand under "Layer B — Design Systems", then load `<brand>.md`. Use it as the project's design system source of truth (color hex values, type scale, component specs, do/don'ts).
 
-**Then also load Layer A** — usually `taste-skill.md` for execution discipline (the design system says *what*, the taste-skill says *how* to write the React/CSS without slop).
+**Then also load Layer A** — usually `taste-skill.md` for execution discipline (the design system says _what_, the taste-skill says _how_ to write the React/CSS without slop).
 
 If the user names a brand not in the index, fall back to Step 2 + a mood-based shortcut from the index.
 
@@ -115,17 +112,17 @@ Decide the lane by **ambition first** — this is what your output gets judged o
 
 Do NOT let an expressive brief fall through to `taste-skill`. Then map the phrasing:
 
-| User says... | Load |
-|---|---|
-| "minimal", "clean", "Notion-like", "Linear-like", "editorial", "boring is good" | `minimalist-skill.md` |
-| "brutalist", "raw", "Swiss", "experimental", "industrial", "anti-design", "unstyled" | `brutalist-skill.md` |
-| "premium", "luxury", "calm", "expensive", "elegant", "spa", "boutique", "glossy", "glassy", "liquid glass", "startup-grade", "make it beautiful/pretty" | `soft-skill.md` + a high-craft Layer B (`supabase` / `linear.app` / `vercel` / `stripe`) |
-| "Awwwards-level", "wow factor", "magnetic", "scroll-triggered", "high-variance", "cinematic", "make it crazy" | `gpt-tasteskill.md` |
-| Neutral or operational — internal tool, dashboard, admin, "just make it usable" with no surface ambition | `taste-skill.md` as Layer A, plus the greenfield `_INDEX.md` shortlist → exactly one Layer B reference |
+| User says...                                                                                                                                            | Load                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| "minimal", "clean", "Notion-like", "Linear-like", "editorial", "boring is good"                                                                         | `minimalist-skill.md`                                                                                  |
+| "brutalist", "raw", "Swiss", "experimental", "industrial", "anti-design", "unstyled"                                                                    | `brutalist-skill.md`                                                                                   |
+| "premium", "luxury", "calm", "expensive", "elegant", "spa", "boutique", "glossy", "glassy", "liquid glass", "startup-grade", "make it beautiful/pretty" | `soft-skill.md` + a high-craft Layer B (`supabase` / `linear.app` / `vercel` / `stripe`)               |
+| "Awwwards-level", "wow factor", "magnetic", "scroll-triggered", "high-variance", "cinematic", "make it crazy"                                           | `gpt-tasteskill.md`                                                                                    |
+| Neutral or operational — internal tool, dashboard, admin, "just make it usable" with no surface ambition                                                | `taste-skill.md` as Layer A, plus the greenfield `_INDEX.md` shortlist → exactly one Layer B reference |
 
-You may also load a brand DESIGN.md from Layer B as a *concrete reference* if the user's mood maps cleanly (see the "Mood-based shortcuts" section in `_INDEX.md`).
+You may also load a brand DESIGN.md from Layer B as a _concrete reference_ if the user's mood maps cleanly (see the "Mood-based shortcuts" section in `_INDEX.md`).
 
-### Step 3 — Is this a *redesign* of existing UI, not a fresh build?
+### Step 3 — Is this a _redesign_ of existing UI, not a fresh build?
 
 Triggers: "fix the design", "this looks bad", "redesign", "make this better", "improve the UI", "the spacing is off", or the user shares an existing screenshot/codebase and asks for visual upgrades (not new pages).
 
@@ -138,6 +135,7 @@ Do NOT use this for greenfield work — the audit phase is wasted effort there.
 Triggers: "generate the design first then code it", "make a mockup before we build", "show me what it could look like" — AND, by default, any expressive greenfield brief (glossy / premium / wow / brand-grade) with no user-supplied reference.
 
 **Action:** Load both:
+
 - `image-to-code-skill.md` (the workflow: generate → analyze → implement)
 - `imagegen-frontend-web.md` for web, or `imagegen-frontend-mobile.md` for mobile screens
 
@@ -151,11 +149,11 @@ Triggers: "generate a mockup image", "create a brand kit board", "design referen
 
 **Action:** Load only the relevant imagegen file. Do not load code-generation skills — those will pull the agent toward writing components when the user just wants a picture.
 
-| Want | Load |
-|---|---|
-| Website mockup image | `imagegen-frontend-web.md` |
-| Mobile app screen images | `imagegen-frontend-mobile.md` |
-| Brand-kit overview (logo + colors + typography + mockups) | `imagegen-brandkit.md` |
+| Want                                                      | Load                          |
+| --------------------------------------------------------- | ----------------------------- |
+| Website mockup image                                      | `imagegen-frontend-web.md`    |
+| Mobile app screen images                                  | `imagegen-frontend-mobile.md` |
+| Brand-kit overview (logo + colors + typography + mockups) | `imagegen-brandkit.md`        |
 
 ### Step 6 — Stitch / DESIGN.md export
 
@@ -183,7 +181,7 @@ Triggers: micro-interactions, animated components, transitions, gestures, hover/
 
 ## Stacking rules (read this once, internalize it)
 
-1. **At most one Layer A *style* skill at a time.** A layout cannot be both `minimalist-skill` and `brutalist-skill` simultaneously — they encode opposite spacing and typography philosophies. Pick one.
+1. **At most one Layer A _style_ skill at a time.** A layout cannot be both `minimalist-skill` and `brutalist-skill` simultaneously — they encode opposite spacing and typography philosophies. Pick one.
 2. **`taste-skill.md` and `gpt-tasteskill.md` are also style-skills** — do not stack them with `minimalist`, `brutalist`, or `soft`. They are alternative defaults at different intensity levels.
 3. **`output-skill.md` and `stitch-skill.md` stack on top of any style skill.** They add discipline and output format, not visual direction.
 4. **`redesign-skill.md` replaces a style-skill** when the task is auditing, not building. Stack a Layer B brand if the user wants a specific direction.
@@ -197,7 +195,7 @@ Triggers: micro-interactions, animated components, transitions, gestures, hover/
 - **Don't load nothing and just freestyle.** That produces the exact "generic AI SaaS slop" — purple-blue gradient backgrounds, rounded-2xl-on-everything, three feature cards in a grid, generic Inter font, lorem ipsum. The skills exist precisely to prevent this.
 - **Don't load five files "to be safe".** That blows context and creates contradictory rules. Pick deliberately.
 - **Don't ignore the user's named brand.** If they say "Linear-style" and you build something that doesn't match Linear's actual aesthetic (purple, ultra-tight spacing, mono accents, etc.), you have failed the routing.
-- **Don't apply a Layer B brand verbatim if the project is not that brand.** The DESIGN.md captures *inspiration* — extract the tokens (palette, type scale, component patterns) and apply them to the project's own content. Do not copy logos or trademarked imagery.
+- **Don't apply a Layer B brand verbatim if the project is not that brand.** The DESIGN.md captures _inspiration_ — extract the tokens (palette, type scale, component patterns) and apply them to the project's own content. Do not copy logos or trademarked imagery.
 - **Don't use imagegen skills to write code.** They are explicitly image-only. The agent has been observed trying to "describe" the image as React code — that is the wrong skill, switch to `image-to-code-skill.md` instead.
 - **Don't suppress style differences with `as any` or `@ts-ignore` to make a borrowed component work.** That is type-safety slop. Adapt the component cleanly.
 
@@ -211,30 +209,30 @@ Once references are loaded, before writing any UI code:
 4. **No emojis in code, markup, alt text, or visible UI.** Replace with proper icons (Radix, Phosphor, Lucide) or clean SVG. Emojis are slop signal.
 5. **Viewport stability.** Use `min-h-[100dvh]`, never `h-screen`, for full-height heroes — `h-screen` causes catastrophic jumps on iOS Safari.
 6. **Server vs client components (Next.js).** If motion/state/portals are involved, isolate as a `'use client'` leaf component. Don't bleed `'use client'` to the page level.
-7. **Match the project's existing patterns FIRST.** If the codebase already uses CSS Modules, don't introduce Tailwind. If it uses styled-components, don't introduce CSS-in-JS variants. The references guide *style*, not *infrastructure*.
+7. **Match the project's existing patterns FIRST.** If the codebase already uses CSS Modules, don't introduce Tailwind. If it uses styled-components, don't introduce CSS-in-JS variants. The references guide _style_, not _infrastructure_.
 8. **All tokens trace back to `DESIGN.md`.** No orphan hex codes, no magic px values. If you need a new token, update `DESIGN.md` first.
 9. **New reusable patterns (used 2+ times) get documented back into `DESIGN.md` Section 5.**
 10. **No generic-default drift (expressive briefs).** The shipped CSS must use the `DESIGN.md` material, not the model's priors. Load the declared fonts (do not silently fall back to Inter or system fonts), build elevated surfaces from the declared multi-layer recipe (not a lone `backdrop-filter: blur`), and color from the ramp stops (not one tint at varied opacity). Grep your styles before QA: finding `Inter`, a single blur on "glass", or one brand hex reused everywhere means you regressed to priors — fix it before declaring done.
 
 ## Quick lookup table — most common requests
 
-| User asks for... | Load these |
-|---|---|
-| "Build me a landing page" (no other info) | `_INDEX.md` shortlist → exactly one Layer B reference + `taste-skill.md` |
-| "Build me an Aside-style AI browser / agent page" | `aside.md` + `taste-skill.md` |
-| "Build me a Linear-style landing page" | `linear.app.md` + `taste-skill.md` |
-| "Make it Notion-like and minimal" | `notion.md` + `minimalist-skill.md` |
-| "Premium SaaS hero, like Stripe" | `stripe.md` + `soft-skill.md` |
-| "Brutalist portfolio" | `brutalist-skill.md` (+ optional `nike.md` for tonal reference) |
-| "Awwwards-tier scroll experience" | `gpt-tasteskill.md` |
-| "Improve this existing dashboard" | `redesign-skill.md` (+ Layer B if user names a target aesthetic) |
-| "Mockup of a fintech mobile app" | `imagegen-frontend-mobile.md` (+ `revolut.md` or `stripe.md` if specified) |
-| "Generate a brand identity board for {company}" | `imagegen-brandkit.md` |
-| "Stop using placeholders" | Add `output-skill.md` to current stack |
-| "Also output a DESIGN.md doc" | Add `stitch-skill.md` to current stack |
-| "Build a dashboard / settings / inbox / app shell" | one style skill (usually `taste-skill.md`) + `layout-skill.md` |
-| "Panel won't scroll / footer pushed off-screen / mobile overflow" | Add `layout-skill.md` to current stack |
-| "Add micro-interactions / animate this / make it feel alive" | Add `interaction-skill.md` to current stack |
+| User asks for...                                                  | Load these                                                                 |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| "Build me a landing page" (no other info)                         | `_INDEX.md` shortlist → exactly one Layer B reference + `taste-skill.md`   |
+| "Build me an Aside-style AI browser / agent page"                 | `aside.md` + `taste-skill.md`                                              |
+| "Build me a Linear-style landing page"                            | `linear.app.md` + `taste-skill.md`                                         |
+| "Make it Notion-like and minimal"                                 | `notion.md` + `minimalist-skill.md`                                        |
+| "Premium SaaS hero, like Stripe"                                  | `stripe.md` + `soft-skill.md`                                              |
+| "Brutalist portfolio"                                             | `brutalist-skill.md` (+ optional `nike.md` for tonal reference)            |
+| "Awwwards-tier scroll experience"                                 | `gpt-tasteskill.md`                                                        |
+| "Improve this existing dashboard"                                 | `redesign-skill.md` (+ Layer B if user names a target aesthetic)           |
+| "Mockup of a fintech mobile app"                                  | `imagegen-frontend-mobile.md` (+ `revolut.md` or `stripe.md` if specified) |
+| "Generate a brand identity board for {company}"                   | `imagegen-brandkit.md`                                                     |
+| "Stop using placeholders"                                         | Add `output-skill.md` to current stack                                     |
+| "Also output a DESIGN.md doc"                                     | Add `stitch-skill.md` to current stack                                     |
+| "Build a dashboard / settings / inbox / app shell"                | one style skill (usually `taste-skill.md`) + `layout-skill.md`             |
+| "Panel won't scroll / footer pushed off-screen / mobile overflow" | Add `layout-skill.md` to current stack                                     |
+| "Add micro-interactions / animate this / make it feel alive"      | Add `interaction-skill.md` to current stack                                |
 
 ## Phase Final — Design QA (MANDATORY, runs after implementation)
 
@@ -247,10 +245,9 @@ This skill adds only the design-taste judgments `/visual-qa` cannot make for you
 
 Report "done" only when `/visual-qa` has passed on fresh evidence AND neither a visual bug nor a floor-level or slop-laden surface remains.
 
-
 ## Final notes
 
-- The reference files are *long* and detailed (200–500 lines each). Loading two or three is fine; loading ten is wasteful and contradictory.
+- The reference files are _long_ and detailed (200–500 lines each). Loading two or three is fine; loading ten is wasteful and contradictory.
 - After loading references, **state which files you loaded and why** in one short sentence so the user can sanity-check your routing.
 - If the user pushes back on a routing decision ("no, I wanted minimal not soft"), **switch references**, don't argue.
 - If unclear after reading the request twice, **ask one focused question** before loading anything: "Are you going for [X] or [Y]?" — better than wasting context on the wrong reference.

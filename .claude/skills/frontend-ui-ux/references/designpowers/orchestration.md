@@ -8,17 +8,17 @@ Use `.omo/frontend-design/state.md` as the design operating ledger when the acti
 
 Recommended sections:
 
-| Section | Purpose |
-|---|---|
-| Current Objective | One sentence describing the current web UI/design objective. |
-| Locked Decisions | Design, routing, licensing, and tooling decisions that must not be reopened without user approval. |
-| Source Inputs | Blueprint, plan, reference screenshots, design system files, third-party source notes, and evidence directories. |
-| Design Brief | Target users, primary journeys, information hierarchy, tone, brand/taste direction, and anti-references. |
-| Inclusive Personas | Persona names, abilities, assistive tech or cognitive constraints, task goals, and pass/fail criteria. |
-| Adaptive Preferences | Reduced motion, contrast, text size, keyboard, screen reader, locale, CJK, or other environmental expectations. |
-| Verification Matrix | Required frontend design/perfection, `/visual-qa`, persona walkthrough, and `/review-work` evidence. |
-| Design Debt Register | Deferred design/a11y issues with severity, affected users, fix, owner, status, and acknowledgement. |
-| Evidence Index | Artifact paths for plans, screenshots, audits, walkthroughs, reviews, and cleanup receipts. |
+| Section              | Purpose                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Current Objective    | One sentence describing the current web UI/design objective.                                                     |
+| Locked Decisions     | Design, routing, licensing, and tooling decisions that must not be reopened without user approval.               |
+| Source Inputs        | Blueprint, plan, reference screenshots, design system files, third-party source notes, and evidence directories. |
+| Design Brief         | Target users, primary journeys, information hierarchy, tone, brand/taste direction, and anti-references.         |
+| Inclusive Personas   | Persona names, abilities, assistive tech or cognitive constraints, task goals, and pass/fail criteria.           |
+| Adaptive Preferences | Reduced motion, contrast, text size, keyboard, screen reader, locale, CJK, or other environmental expectations.  |
+| Verification Matrix  | Required frontend design/perfection, `/visual-qa`, persona walkthrough, and `/review-work` evidence.             |
+| Design Debt Register | Deferred design/a11y issues with severity, affected users, fix, owner, status, and acknowledgement.              |
+| Evidence Index       | Artifact paths for plans, screenshots, audits, walkthroughs, reviews, and cleanup receipts.                      |
 
 State entries should be short, dated when useful, and evidence-backed. Do not use the state file to smuggle unverified success claims.
 
@@ -26,10 +26,10 @@ State entries should be short, dated when useful, and evidence-backed. Do not us
 
 Direct and Auto are prompt-only semantics:
 
-| Mode | Meaning | Required pauses |
-|---|---|---|
-| Direct | OpenAgent proceeds through known frontend/OpenAgent routes using the user's brief, repo evidence, and reversible defaults. | Pause for destructive changes, public product choices, missing objective, or accessibility/persona tradeoffs that cannot be resolved from evidence. |
-| Auto | OpenAgent may choose defensible defaults for low-risk design details and continue through the frontend workflow. | Pause for prohibited tooling, new external integrations, irreversible design-system changes, unresolved critical accessibility gaps, or conflicting owner decisions. |
+| Mode   | Meaning                                                                                                                    | Required pauses                                                                                                                                                      |
+| ------ | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Direct | OpenAgent proceeds through known frontend/OpenAgent routes using the user's brief, repo evidence, and reversible defaults. | Pause for destructive changes, public product choices, missing objective, or accessibility/persona tradeoffs that cannot be resolved from evidence.                  |
+| Auto   | OpenAgent may choose defensible defaults for low-risk design details and continue through the frontend workflow.           | Pause for prohibited tooling, new external integrations, irreversible design-system changes, unresolved critical accessibility gaps, or conflicting owner decisions. |
 
 Neither mode may create hooks, background schedulers, fake direct calls, or a separate planner/build harness. Modes affect prompts and escalation behavior only.
 

@@ -4,15 +4,15 @@ Lane C runs after implementation and before final sign-off. It requires objectiv
 
 ## Phase Owner
 
-| Capability | Materialized designpowers source | owner | Mapping |
-|---|---|---|---|
-| Review an existing surface without rerunning discovery | `design-review` | `visual-qa` plus `review-work` | Use only for critique context; still captures objective artifacts and final review. |
-| Critique against brief, plan, personas, design principles, taste, and craft | `designpowers-critique` | `visual-qa` evidence, then `review-work` | Run after screenshots and objective checks exist, so findings cite the built surface. |
-| WCAG, COGA, keyboard, screen reader, motion, content, and adaptive needs | agent `accessibility-reviewer` | `visual-qa` evidence, then `review-work` | Treat the materialized agent file as reviewer-role guidance. Name who is affected and exact fixes. |
-| Nielsen heuristics and cognitive walkthroughs | `heuristic-evaluation` plus agent `heuristic-evaluator` | `visual-qa` evidence, then `review-work` | Walk every key task and classify H1-H10 findings with severity. |
-| Persona and task walkthroughs | `synthetic-user-testing` | `visual-qa` evidence, then `review-work` | Validate that inclusive-personas can complete real tasks under their assistive or situational contexts. |
-| Human testing plan when needed | `usability-testing` | `review-work` context | Produce a test plan or follow-up recommendation when synthetic testing is insufficient. |
-| Completion evidence discipline | `verification-before-shipping` | `review-work` | Summarize plan completion, accessibility results, persona walkthrough, content status, and debt status. |
+| Capability                                                                  | Materialized designpowers source                        | owner                                    | Mapping                                                                                                 |
+| --------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Review an existing surface without rerunning discovery                      | `design-review`                                         | `visual-qa` plus `review-work`           | Use only for critique context; still captures objective artifacts and final review.                     |
+| Critique against brief, plan, personas, design principles, taste, and craft | `designpowers-critique`                                 | `visual-qa` evidence, then `review-work` | Run after screenshots and objective checks exist, so findings cite the built surface.                   |
+| WCAG, COGA, keyboard, screen reader, motion, content, and adaptive needs    | agent `accessibility-reviewer`                          | `visual-qa` evidence, then `review-work` | Treat the materialized agent file as reviewer-role guidance. Name who is affected and exact fixes.      |
+| Nielsen heuristics and cognitive walkthroughs                               | `heuristic-evaluation` plus agent `heuristic-evaluator` | `visual-qa` evidence, then `review-work` | Walk every key task and classify H1-H10 findings with severity.                                         |
+| Persona and task walkthroughs                                               | `synthetic-user-testing`                                | `visual-qa` evidence, then `review-work` | Validate that inclusive-personas can complete real tasks under their assistive or situational contexts. |
+| Human testing plan when needed                                              | `usability-testing`                                     | `review-work` context                    | Produce a test plan or follow-up recommendation when synthetic testing is insufficient.                 |
+| Completion evidence discipline                                              | `verification-before-shipping`                          | `review-work`                            | Summarize plan completion, accessibility results, persona walkthrough, content status, and debt status. |
 
 Materialized agent references for this lane: `design-critic`, `accessibility-reviewer`, and `heuristic-evaluator`.
 

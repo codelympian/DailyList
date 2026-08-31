@@ -4,11 +4,11 @@ When setting up or working on a React project, install three dev-only tools by d
 
 ## The three tools
 
-| Tool | What it does | Why it's a default |
-|---|---|---|
-| **react-grab** | Cmd/Ctrl+C on any UI element copies its source location + nearby code + component stack into the clipboard, formatted for an AI agent to act on. | Cuts agent edit time **~2×** because the agent receives the actual source coordinates instead of guessing from a screenshot. From the author of Million.dev. |
-| **react-scan** | Visually highlights every component render in dev. Detects unnecessary re-renders, slow renders, and tracks render causes. Has a headless `react-scan/lite` mode for automated perf measurement. | Catches re-render regressions the moment they happen, before they ship. Pairs with the perfection ruleset (`../perfection/README.md`) for Lighthouse 100 work. |
-| **react-doctor** | Static scanner that finds bad React patterns across state & effects, perf, architecture, security, a11y. One-shot `npx react-doctor@latest` audit + CI GitHub Action + agent-skill installer. | Catches AI-generated React anti-patterns deterministically. Run before commit and in CI. Installs itself as a Claude Code / OpenCode / Cursor / Codex skill so the agent learns from each scan. |
+| Tool             | What it does                                                                                                                                                                                     | Why it's a default                                                                                                                                                                              |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **react-grab**   | Cmd/Ctrl+C on any UI element copies its source location + nearby code + component stack into the clipboard, formatted for an AI agent to act on.                                                 | Cuts agent edit time **~2×** because the agent receives the actual source coordinates instead of guessing from a screenshot. From the author of Million.dev.                                    |
+| **react-scan**   | Visually highlights every component render in dev. Detects unnecessary re-renders, slow renders, and tracks render causes. Has a headless `react-scan/lite` mode for automated perf measurement. | Catches re-render regressions the moment they happen, before they ship. Pairs with the perfection ruleset (`../perfection/README.md`) for Lighthouse 100 work.                                  |
+| **react-doctor** | Static scanner that finds bad React patterns across state & effects, perf, architecture, security, a11y. One-shot `npx react-doctor@latest` audit + CI GitHub Action + agent-skill installer.    | Catches AI-generated React anti-patterns deterministically. Run before commit and in CI. Installs itself as a Claude Code / OpenCode / Cursor / Codex skill so the agent learns from each scan. |
 
 All three are **dev-only** (`process.env.NODE_ENV === 'development'` or `import.meta.env.DEV`). None ship to production.
 
@@ -36,13 +36,13 @@ After install, confirm by reading the diff. Each tool should appear ONLY behind 
 ### Next.js (App Router) — `app/layout.tsx`
 
 ```tsx
-import Script from "next/script";
+import Script from 'next/script';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        {process.env.NODE_ENV === "development" && (
+        {process.env.NODE_ENV === 'development' && (
           <>
             <Script
               src="//unpkg.com/react-grab/dist/index.global.js"
@@ -71,8 +71,8 @@ Same pattern, but the `<Script>` tags live inside `<Head>` from `next/document` 
 
 ```tsx
 if (import.meta.env.DEV) {
-  void import("react-grab");
-  void import("react-scan");
+  void import('react-grab');
+  void import('react-scan');
 }
 ```
 
@@ -80,9 +80,9 @@ Optionally add the Vite plugin for richer `displayName` data on react-scan:
 
 ```ts
 // vite.config.ts
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import reactScan from "vite-plugin-react-scan";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import reactScan from 'vite-plugin-react-scan';
 
 export default defineConfig({
   plugins: [react(), reactScan()],
@@ -92,9 +92,9 @@ export default defineConfig({
 ### Webpack / CRA — entry file top
 
 ```ts
-if (process.env.NODE_ENV === "development") {
-  void import("react-grab");
-  void import("react-scan");
+if (process.env.NODE_ENV === 'development') {
+  void import('react-grab');
+  void import('react-scan');
 }
 ```
 
@@ -106,7 +106,7 @@ export default function App() {
     <html lang="en">
       <head>
         <Meta />
-        {process.env.NODE_ENV === "development" && (
+        {process.env.NODE_ENV === 'development' && (
           <>
             <script crossOrigin="anonymous" src="//unpkg.com/react-grab/dist/index.global.js" />
             <script crossOrigin="anonymous" src="//unpkg.com/react-scan/dist/auto.global.js" />
@@ -182,12 +182,11 @@ The `NODE_ENV === "development"` gate already keeps these out of production. For
 ```ts
 // entry file
 const enableDevTools =
-  process.env.NODE_ENV === "development" &&
-  process.env.NEXT_PUBLIC_DISABLE_REACT_DEVTOOLS !== "1";
+  process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_DISABLE_REACT_DEVTOOLS !== '1';
 
 if (enableDevTools) {
-  void import("react-grab");
-  void import("react-scan");
+  void import('react-grab');
+  void import('react-scan');
 }
 ```
 

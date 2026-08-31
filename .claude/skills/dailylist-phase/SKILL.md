@@ -56,7 +56,7 @@ run in this environment, say so explicitly rather than implying it passed.
 - **Never claim what we cannot observe.** With click-to-chat we know only
   `WHATSAPP_OPENED` / `COPIED`. There is no delivered/read/replied, and none may
   be added without a real WhatsApp Business Platform integration.
-- **Explainability.** Every recommendation stores reason codes *and* frozen
+- **Explainability.** Every recommendation stores reason codes _and_ frozen
   human-readable reason text derived from measured data.
 
 ## Verification commands

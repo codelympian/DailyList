@@ -23,20 +23,30 @@ A compact sweep payload to inject through the browser's evaluate action (extend 
 ```js
 () => {
   const out = [];
-  for (const el of document.querySelectorAll("*")) {
+  for (const el of document.querySelectorAll('*')) {
     const s = getComputedStyle(el);
     out.push({
       tag: el.tagName,
-      color: s.color, background: s.backgroundColor, border: s.borderColor,
-      font: s.fontFamily, size: s.fontSize, weight: s.fontWeight,
-      lineHeight: s.lineHeight, letterSpacing: s.letterSpacing,
-      radius: s.borderRadius, shadow: s.boxShadow,
-      padding: s.padding, margin: s.margin, gap: s.gap,
-      transition: s.transition, animation: s.animation, transform: s.transform,
+      color: s.color,
+      background: s.backgroundColor,
+      border: s.borderColor,
+      font: s.fontFamily,
+      size: s.fontSize,
+      weight: s.fontWeight,
+      lineHeight: s.lineHeight,
+      letterSpacing: s.letterSpacing,
+      radius: s.borderRadius,
+      shadow: s.boxShadow,
+      padding: s.padding,
+      margin: s.margin,
+      gap: s.gap,
+      transition: s.transition,
+      animation: s.animation,
+      transform: s.transform,
     });
   }
   return out;
-}
+};
 ```
 
 ## Phase 2 — Write the DESIGN.md contract
@@ -62,4 +72,4 @@ Verify through `/visual-qa` in reference-fidelity mode against the source captur
 
 ## Provenance
 
-This runtime-extraction workflow follows the MIT-licensed **[JCodesMore/ai-website-cloner-template](https://github.com/JCodesMore/ai-website-cloner-template)** clone-website approach: browser automation plus a `getComputedStyle` sweep, state/motion/asset capture, spec files, and visual QA. It is a project-original synthesis, not a copy of that template. Do not treat this file as a license to copy any target site's trademarks, brand assets, logos, or proprietary copy — extract the design *system* (tokens, layout grammar, component anatomy, interaction states, motion) and apply it to the user's own product and content.
+This runtime-extraction workflow follows the MIT-licensed **[JCodesMore/ai-website-cloner-template](https://github.com/JCodesMore/ai-website-cloner-template)** clone-website approach: browser automation plus a `getComputedStyle` sweep, state/motion/asset capture, spec files, and visual QA. It is a project-original synthesis, not a copy of that template. Do not treat this file as a license to copy any target site's trademarks, brand assets, logos, or proprietary copy — extract the design _system_ (tokens, layout grammar, component anatomy, interaction states, motion) and apply it to the user's own product and content.

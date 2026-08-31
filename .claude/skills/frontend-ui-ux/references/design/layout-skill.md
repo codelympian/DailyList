@@ -1,11 +1,11 @@
 ---
 name: layout-skill
-description: "Layer A layout-mechanics reference. Stacks on any style skill when the screen is an app shell, dashboard, settings, list-detail, mail/inbox, or any layout with fixed regions plus a scrolling body — or when a layout breaks under long, empty, or unbroken content. Owns spatial structure and scroll ownership; owns zero visual taste. Load it alongside a style skill; it does not replace one."
+description: 'Layer A layout-mechanics reference. Stacks on any style skill when the screen is an app shell, dashboard, settings, list-detail, mail/inbox, or any layout with fixed regions plus a scrolling body — or when a layout breaks under long, empty, or unbroken content. Owns spatial structure and scroll ownership; owns zero visual taste. Load it alongside a style skill; it does not replace one.'
 ---
 
 # Layout Mechanics
 
-Style skills decide how a surface looks. This file decides how it is *built to hold content* — what scrolls, what stays fixed, how regions shrink, and which layouts survive real data. It stacks on top of any Layer A style skill (`taste-skill`, `minimalist-skill`, `soft-skill`, `brutalist-skill`, `gpt-tasteskill`) and any Layer B brand. It adds ZERO visual direction — color, type, shadow, radius, and motion still come from the style skill and `DESIGN.md`.
+Style skills decide how a surface looks. This file decides how it is _built to hold content_ — what scrolls, what stays fixed, how regions shrink, and which layouts survive real data. It stacks on top of any Layer A style skill (`taste-skill`, `minimalist-skill`, `soft-skill`, `brutalist-skill`, `gpt-tasteskill`) and any Layer B brand. It adds ZERO visual direction — color, type, shadow, radius, and motion still come from the style skill and `DESIGN.md`.
 
 Load this when the screen is an **application shell**, not a scroll-the-whole-document marketing page: dashboards, settings, list-detail, mail/inbox, command surfaces, split panes, sidebars — or when a page that looked fine breaks the moment content gets long, empty, or unbroken.
 
@@ -25,7 +25,7 @@ Rules:
 
 ## 2. The two CSS contracts agents get wrong
 
-These two are worth memorizing verbatim. They fail *silently* — the layout looks right until content arrives.
+These two are worth memorizing verbatim. They fail _silently_ — the layout looks right until content arrives.
 
 **Bounded scroll shell** (fixed header/footer, scrolling body):
 
@@ -59,31 +59,31 @@ The inner `min(16rem, 100%)` is load-bearing: plain `minmax(16rem, 1fr)` forces 
 
 Build shells from these named primitives instead of ad-hoc fl/grid. Naming them makes `DESIGN.md` Section 5 and subagent handoffs precise ("wrap it in a `sidebar` with a 20rem aside" beats "put it on the left, roughly"). Lineage: Every Layout + web.dev one-line layouts.
 
-| Primitive | Spatial job | Core mechanic |
-|---|---|---|
-| **stack** | Vertical rhythm between siblings | flex column + `gap`, or `> * + *` margin |
-| **cluster** | Wrapping row of items (tags, actions) | `flex-wrap: wrap` + `gap`; wraps before overflow |
-| **content-limiter** | Readable prose measure inside a fluid parent | `max-inline-size: ~65ch; margin-inline: auto` |
-| **sidebar** | Narrow aside + fluid main, wraps when tight | flex; aside fixed basis, main `min-inline-size` floor, both `flex-wrap` |
-| **switcher** | N equal regions: row when roomy, stack when tight, NO breakpoint | flex + `min()` basis so it flips at a content threshold |
-| **cover** | Centered region between optional header/footer, min viewport tall | grid rows `auto 1fr auto`, `min-block-size: 100dvb` |
-| **frame** | Media held to an aspect ratio | `aspect-ratio` + `object-fit: cover` |
-| **reel** | Row that scrolls horizontally instead of wrapping | `overflow-inline: auto` + `scroll-snap`; declare keyboard access |
-| **imposter** | Overlay centered over a parent without changing document order | `position: absolute` + translate; do not use to reorder focus |
-| **overlay-stack** | Several layers intentionally in one cell | single grid cell, all children `grid-area: 1/1` |
-| **scroll-body-shell** | Fixed shell regions, only the body scrolls | §2 bounded scroll shell |
-| **fixed-sidenav-shell** | Side nav stays put, main scrolls | grid columns `auto 1fr`, main is the scroll owner |
-| **list-detail** | Explorable list beside its detail region | two-column grid, each pane's scroll ownership named |
-| **sticky-aside** | Support content stays visible during a long read | `position: sticky; top:` on the aside, document scroll |
+| Primitive               | Spatial job                                                       | Core mechanic                                                           |
+| ----------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| **stack**               | Vertical rhythm between siblings                                  | flex column + `gap`, or `> * + *` margin                                |
+| **cluster**             | Wrapping row of items (tags, actions)                             | `flex-wrap: wrap` + `gap`; wraps before overflow                        |
+| **content-limiter**     | Readable prose measure inside a fluid parent                      | `max-inline-size: ~65ch; margin-inline: auto`                           |
+| **sidebar**             | Narrow aside + fluid main, wraps when tight                       | flex; aside fixed basis, main `min-inline-size` floor, both `flex-wrap` |
+| **switcher**            | N equal regions: row when roomy, stack when tight, NO breakpoint  | flex + `min()` basis so it flips at a content threshold                 |
+| **cover**               | Centered region between optional header/footer, min viewport tall | grid rows `auto 1fr auto`, `min-block-size: 100dvb`                     |
+| **frame**               | Media held to an aspect ratio                                     | `aspect-ratio` + `object-fit: cover`                                    |
+| **reel**                | Row that scrolls horizontally instead of wrapping                 | `overflow-inline: auto` + `scroll-snap`; declare keyboard access        |
+| **imposter**            | Overlay centered over a parent without changing document order    | `position: absolute` + translate; do not use to reorder focus           |
+| **overlay-stack**       | Several layers intentionally in one cell                          | single grid cell, all children `grid-area: 1/1`                         |
+| **scroll-body-shell**   | Fixed shell regions, only the body scrolls                        | §2 bounded scroll shell                                                 |
+| **fixed-sidenav-shell** | Side nav stays put, main scrolls                                  | grid columns `auto 1fr`, main is the scroll owner                       |
+| **list-detail**         | Explorable list beside its detail region                          | two-column grid, each pane's scroll ownership named                     |
+| **sticky-aside**        | Support content stays visible during a long read                  | `position: sticky; top:` on the aside, document scroll                  |
 
 ## 4. Container-local vs viewport-level responsiveness
 
 Ask **what the layout is responding to** before reaching for a breakpoint:
 
-- The component should adapt to *its own available width* (a card that's wide in main but narrow in a rail) → wrap it in `container-type: inline-size` and use `@container`. This is correct far more often than agents assume, because a component rarely knows the viewport it lands in.
-- The *page frame itself* changes (sidebar collapses, columns drop) → `@media`.
+- The component should adapt to _its own available width_ (a card that's wide in main but narrow in a rail) → wrap it in `container-type: inline-size` and use `@container`. This is correct far more often than agents assume, because a component rarely knows the viewport it lands in.
+- The _page frame itself_ changes (sidebar collapses, columns drop) → `@media`.
 
-Prefer intrinsic adaptation (`switcher`, `sidebar`, intrinsic grid, `clamp()`) over any query — the best breakpoint is often none. Use breakpoint *names* for layout states, never device names (`--bp-wide`, not `--bp-ipad`).
+Prefer intrinsic adaptation (`switcher`, `sidebar`, intrinsic grid, `clamp()`) over any query — the best breakpoint is often none. Use breakpoint _names_ for layout states, never device names (`--bp-wide`, not `--bp-ipad`).
 
 ## 5. Recipes are spatial models, not product categories
 
@@ -91,7 +91,7 @@ Choose a layout by the screen's spatial shape, not its product label. A settings
 
 ## 6. Content stress — the layout is not done until it survives this
 
-Landing pages fail on taste; app shells fail on *content*. Before declaring any layout done, stress every region against:
+Landing pages fail on taste; app shells fail on _content_. Before declaring any layout done, stress every region against:
 
 - **Empty** — no rows, no avatar, no value. Does the region collapse gracefully or leave a broken frame?
 - **Long label** — a 40-char name in a 12-char slot. Truncate (`text-overflow: ellipsis`) or wrap by design, never by accident.

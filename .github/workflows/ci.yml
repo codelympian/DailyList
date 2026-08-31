@@ -67,3 +67,28 @@ jobs:
 
       - name: API integration tests
         run: npm run test:e2e -w @dailylist/api
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      - name: Browser E2E (full MVP workflow, mobile + desktop)
+        # The API must be running: Playwright starts the web app itself.
+        run: |
+          node apps/api/dist/main.js &
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:4000/health > /dev/null && break
+            sleep 1
+          done
+          npm run test:e2e -w @dailylist/web
+        env:
+          API_CORS_ORIGIN: http://localhost:3200
+          E2E_WEB_PORT: 3200
+
+      - name: Upload E2E artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7

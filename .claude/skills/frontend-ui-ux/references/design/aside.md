@@ -73,14 +73,14 @@ The current page does use pale cyan/sky-blue atmosphere in large image-backed ba
 
 ### Hierarchy
 
-| Role | Font | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---:|---:|---:|---:|---|
-| Hero Display | displayFont | 48px | 400 | 52px | -0.48px | Primary H1 |
-| Section Display | displayFont | 36px-48px | 400-500 | 1.08-1.15 | tight | Major section claims |
-| Card Title | displayFont or Geist | 24px-30px | 500 | 1.2 | normal/tight | Product capability cards |
-| Body | Geist | 16px | 400 | 24px | normal | General explanation |
-| UI Label | Geist | 14px | 500 | 20px | normal | Nav, buttons, menu labels |
-| Pill/Caption | Geist | 12px-14px | 500-550 | 1.3 | slight | Badges, metadata, benchmarks |
+| Role            | Font                 |      Size |  Weight | Line Height | Letter Spacing | Use                          |
+| --------------- | -------------------- | --------: | ------: | ----------: | -------------: | ---------------------------- |
+| Hero Display    | displayFont          |      48px |     400 |        52px |        -0.48px | Primary H1                   |
+| Section Display | displayFont          | 36px-48px | 400-500 |   1.08-1.15 |          tight | Major section claims         |
+| Card Title      | displayFont or Geist | 24px-30px |     500 |         1.2 |   normal/tight | Product capability cards     |
+| Body            | Geist                |      16px |     400 |        24px |         normal | General explanation          |
+| UI Label        | Geist                |      14px |     500 |        20px |         normal | Nav, buttons, menu labels    |
+| Pill/Caption    | Geist                | 12px-14px | 500-550 |         1.3 |         slight | Badges, metadata, benchmarks |
 
 ### Principles
 

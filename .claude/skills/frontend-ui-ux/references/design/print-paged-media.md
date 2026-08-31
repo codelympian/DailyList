@@ -1,6 +1,6 @@
 ---
 name: print-paged-media
-description: "Layer A paged-media reference. Load it when output is a document that breaks into pages - a PDF report, a print stylesheet, a headless-Chrome print pipeline, or an HTML deck printed to paper - instead of a continuously scrolling screen. Owns the page box, fragmentation properties, the atomic-block set, and the keep-together side effect that strands a block on a near-empty page. Adds zero visual taste; the style skill and DESIGN.md still own color, type, and spacing."
+description: 'Layer A paged-media reference. Load it when output is a document that breaks into pages - a PDF report, a print stylesheet, a headless-Chrome print pipeline, or an HTML deck printed to paper - instead of a continuously scrolling screen. Owns the page box, fragmentation properties, the atomic-block set, and the keep-together side effect that strands a block on a near-empty page. Adds zero visual taste; the style skill and DESIGN.md still own color, type, and spacing.'
 ---
 
 # Paged Media
@@ -22,12 +22,12 @@ Declare the page before styling anything inside it. `@page { size: A4; margin: 2
 
 Three properties decide every cut. Modern names first; the `page-break-*` aliases still work and appear in older pipelines.
 
-| Property | Use it for |
-|---|---|
-| `break-before: page` | Start a section on a fresh page. |
-| `break-after: avoid` | Keep a heading with the block that follows it (keep-with-next). |
-| `break-inside: avoid` | Forbid a cut *through* one block: a table, a figure, a callout, a code listing. |
-| `orphans` / `widows` | Minimum lines of a paragraph left at a page foot / carried to the next page. Set both to at least 2; 3 reads better in dense body copy. |
+| Property              | Use it for                                                                                                                              |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `break-before: page`  | Start a section on a fresh page.                                                                                                        |
+| `break-after: avoid`  | Keep a heading with the block that follows it (keep-with-next).                                                                         |
+| `break-inside: avoid` | Forbid a cut _through_ one block: a table, a figure, a callout, a code listing.                                                         |
+| `orphans` / `widows`  | Minimum lines of a paragraph left at a page foot / carried to the next page. Set both to at least 2; 3 reads better in dense body copy. |
 
 `break-inside: avoid` on a wrapper is what actually protects a table - apply it to the element that owns the whole exhibit, not to the `<table>` alone, or the caption and the rules can still separate from the rows.
 

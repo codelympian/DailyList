@@ -31,10 +31,16 @@ suggested message → WhatsApp quick send → follow-up outcome → analytics
 | `packages/config`   | zod + dotenv                     | Validated environment configuration                  |
 | `packages/types`    | TypeScript                       | Shared domain/API types                              |
 
-Packages planned but **deliberately not created yet** (added in the phase that first needs
-them, to avoid dead code): `packages/scoring` (Phase 6–7), `packages/messaging` (Phase 8–9),
-`packages/validation` (Phase 2+ domain validation), `packages/ui` (Phase 10 if extraction
-is warranted).
+All planned packages now exist, each added in the phase that first needed it:
+`validation` (Phase 2), `importer` (Phase 5), `scoring` (Phases 6–7) and
+`messaging` (Phases 8–9). `packages/ui` was never created — the web app is the
+only consumer of its components, so extracting them would have added indirection
+without a second consumer to justify it.
+
+**Design direction** lives in `.claude/skills/` (`frontend-design` and
+`mobile-app-ui-design` are the primary references for this product; the darker
+`dashboard` skill is a secondary reference for data density only). The palette
+is documented in `docs/phases/phase-10.md`.
 
 ## Architectural principles
 
@@ -81,8 +87,10 @@ documents every variable.
 - **Unit:** business rules, scoring, normalization, job handlers (Jest, per workspace).
 - **Integration:** API endpoints against real PostgreSQL + Redis (Supertest; local dev
   stack or CI services).
-- **E2E (from Phase 10):** Playwright over the full web flow. Not installed in Phase 0 —
-  there is no UI flow to test yet.
+- **E2E:** Playwright drives the full MVP workflow in a real browser on both a
+  phone viewport (Pixel 7) and desktop — register, create a business, add a
+  product and customer, record a sale, read the generated list, verify the
+  WhatsApp link, mark done, and watch progress reach completion.
 
 ## Phase status
 

@@ -10,9 +10,9 @@ own: its Layout domain covers spatial structure and explicitly excludes brand, t
 color, shadow, and animation - exactly what a Layer B brand reference carries. Ask one
 question per source:
 
-| Open question | Source |
-|---|---|
-| Where does this go? What contains it? Who scrolls? | StyleGallery |
+| Open question                                                        | Source                  |
+| -------------------------------------------------------------------- | ----------------------- |
+| Where does this go? What contains it? Who scrolls?                   | StyleGallery            |
 | What does it look like - palette, type scale, material, motion feel? | Layer B brand reference |
 
 Both feed the same `DESIGN.md`. Neither replaces the other, and neither is optional because
@@ -22,13 +22,13 @@ the mechanics when a layout is breaking; load a pattern when you need one that a
 
 ## Domains
 
-| Domain | Ask it about |
-|---|---|
-| Layout | Spatial structure, flow, sizing, alignment, containment, scrolling, composition |
-| Motion | Motion vocabulary and review procedure, bounded by stated evidence |
-| Design Engineering | Product-layer craft decisions and the questions that verify them |
-| Game UI | Game-interface classification, screen hierarchy, engine-specific implementation |
-| Platform Guides | Bounded comparison against a named platform's conventions |
+| Domain             | Ask it about                                                                    |
+| ------------------ | ------------------------------------------------------------------------------- |
+| Layout             | Spatial structure, flow, sizing, alignment, containment, scrolling, composition |
+| Motion             | Motion vocabulary and review procedure, bounded by stated evidence              |
+| Design Engineering | Product-layer craft decisions and the questions that verify them                |
+| Game UI            | Game-interface classification, screen hierarchy, engine-specific implementation |
+| Platform Guides    | Bounded comparison against a named platform's conventions                       |
 
 Layout is the domain that pays off in ordinary product work; the rest are situational.
 

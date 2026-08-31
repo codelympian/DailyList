@@ -1,33 +1,33 @@
 ---
 name: Enterprise
 colors:
-  primary: "#0C5CAB"
-  secondary: "#0a4a8a"
-  success: "#10b981"
-  warning: "#f59e0b"
-  danger: "#ef4444"
-  surface: "#09090b"
-  text: "#fafafa"
-  neutral: "#09090b"
+  primary: '#0C5CAB'
+  secondary: '#0a4a8a'
+  success: '#10b981'
+  warning: '#f59e0b'
+  danger: '#ef4444'
+  surface: '#09090b'
+  text: '#fafafa'
+  neutral: '#09090b'
 typography:
   h1:
-    fontFamily: "IBM Plex Sans"
+    fontFamily: 'IBM Plex Sans'
     fontSize: 2rem
   body-md:
-    fontFamily: "IBM Plex Sans"
+    fontFamily: 'IBM Plex Sans'
     fontSize: 1rem
   label-caps:
-    fontFamily: "IBM Plex Sans"
+    fontFamily: 'IBM Plex Sans'
     fontSize: 0.75rem
-  sourceScale: "12/14/16/20/24/32"
-  weights: "100, 200, 300, 400, 500, 600, 700, 800, 900"
+  sourceScale: '12/14/16/20/24/32'
+  weights: '100, 200, 300, 400, 500, 600, 700, 800, 900'
 rounded:
   sm: 4px
   md: 8px
 spacing:
   sm: 8px
   md: 16px
-  sourceScale: "8pt baseline grid"
+  sourceScale: '8pt baseline grid'
 ---
 
 ## Overview

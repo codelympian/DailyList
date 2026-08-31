@@ -2,12 +2,12 @@
 
 You are auditing or optimizing a React app for Lighthouse 100. Two tools belong in this workflow alongside Playwright + lighthouse — they catch the React-specific perf issues that Lighthouse counts but doesn't diagnose by component:
 
-| Tool | Surface | What it gives you |
-|---|---|---|
+| Tool                               | Surface                           | What it gives you                                                                                                                                                                                                            |
+| ---------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **react-scan** (`react-scan/lite`) | Runtime instrumentation, headless | Per-fiber `commit` events with `changeDescription` — "this component re-rendered because <prop / state / context / parent / hook> changed". Correlates with `long-animation-frame` to attribute LoAF to specific components. |
-| **react-doctor** | Static scan, CI-friendly | Deterministic findings across state/effects, perf (memoization, list keys, expensive children), architecture, security, a11y. One-shot `npx react-doctor@latest` produces a JSON report. From the Million.dev team. |
+| **react-doctor**                   | Static scan, CI-friendly          | Deterministic findings across state/effects, perf (memoization, list keys, expensive children), architecture, security, a11y. One-shot `npx react-doctor@latest` produces a JSON report. From the Million.dev team.          |
 
-Use both. They are complementary: `react-scan` tells you *what's slow right now*; `react-doctor` tells you *what's structurally wrong*. Both are dev-only and free.
+Use both. They are complementary: `react-scan` tells you _what's slow right now_; `react-doctor` tells you _what's structurally wrong_. Both are dev-only and free.
 
 If the project does not yet have react-scan and react-doctor wired into its dev environment, read `../design/react-dev-tooling-skill.md` first and install them — they should be on by default for every React project this skill audits.
 
@@ -17,20 +17,20 @@ If the project does not yet have react-scan and react-doctor wired into its dev 
 
 ```ts
 // scripts/audit-with-react-scan.ts
-import { chromium } from "playwright";
-import { playAudit } from "playwright-lighthouse";
+import { chromium } from 'playwright';
+import { playAudit } from 'playwright-lighthouse';
 
-const browser = await chromium.launch({ channel: "chrome" });
+const browser = await chromium.launch({ channel: 'chrome' });
 const context = await browser.newContext();
 
 // Inject react-scan/lite BEFORE the app boots
 await context.addInitScript(() => {
   // @ts-ignore — pulled from the project's node_modules or a self-hosted bundle
-  import("react-scan/lite").then(({ instrument }) => {
+  import('react-scan/lite').then(({ instrument }) => {
     (window as any).__renderEvents = [];
     instrument({
       onEvent: (event: any) => {
-        if (event.kind === "commit") (window as any).__renderEvents.push(event);
+        if (event.kind === 'commit') (window as any).__renderEvents.push(event);
       },
       recordChangeDescriptions: true,
       includeFiberSource: true,
@@ -40,25 +40,25 @@ await context.addInitScript(() => {
 });
 
 const page = await context.newPage();
-await page.goto("http://localhost:3000/<route>");
+await page.goto('http://localhost:3000/<route>');
 
 await playAudit({
   page,
   port: 9222,
-  thresholds: { performance: 100, accessibility: 100, "best-practices": 100, seo: 100 },
-  reports: { formats: { html: true, json: true }, name: "lighthouse-<route>" },
-  config: { extends: "lighthouse:default", settings: { formFactor: "mobile" } },
+  thresholds: { performance: 100, accessibility: 100, 'best-practices': 100, seo: 100 },
+  reports: { formats: { html: true, json: true }, name: 'lighthouse-<route>' },
+  config: { extends: 'lighthouse:default', settings: { formFactor: 'mobile' } },
 });
 
 // Pull render events and assert on render quality
 const events = await page.evaluate(() => (window as any).__renderEvents);
 const unnecessary = events.filter((e: any) =>
-  e.tree?.some((node: any) => node.changeDescription?.kind === "unnecessary"),
+  e.tree?.some((node: any) => node.changeDescription?.kind === 'unnecessary'),
 );
 
 if (unnecessary.length > 0) {
   console.error(`FAIL: ${unnecessary.length} unnecessary renders detected during audit`);
-  for (const e of unnecessary.slice(0, 10)) console.error("  -", JSON.stringify(e, null, 2));
+  for (const e of unnecessary.slice(0, 10)) console.error('  -', JSON.stringify(e, null, 2));
   process.exit(1);
 }
 
@@ -75,7 +75,7 @@ Before the Playwright run, fail fast on structural issues. The scan is fast and 
 npx react-doctor@latest --json > .react-doctor-report.json
 ```
 
-Parse `.react-doctor-report.json` for perf-category findings. Treat any perf finding as a blocker for the same reason you treat a Lighthouse score < 100 as a blocker — these are deterministic issues that *will* show up in Lighthouse eventually under throttling.
+Parse `.react-doctor-report.json` for perf-category findings. Treat any perf finding as a blocker for the same reason you treat a Lighthouse score < 100 as a blocker — these are deterministic issues that _will_ show up in Lighthouse eventually under throttling.
 
 Wire it into CI as a separate job (cheap, fast, no browser needed):
 

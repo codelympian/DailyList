@@ -33,9 +33,18 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
+/**
+ * A card title heads a section, so it renders as a real heading by default —
+ * screen-reader users navigate by heading, and a div is invisible to that.
+ * Pass `as` to fit the page's heading order (or "div" when it isn't a section).
+ */
+function CardTitle({
+  className,
+  as: Tag = 'h2',
+  ...props
+}: React.ComponentProps<'div'> & { as?: 'h1' | 'h2' | 'h3' | 'div' }) {
   return (
-    <div
+    <Tag
       data-slot="card-title"
       className={cn(
         'font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm',

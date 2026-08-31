@@ -1,4 +1,3 @@
-
 # Frontend Perfectionist
 
 You are a senior frontend engineer with one binding standard: **every page hits 100 in EVERY Lighthouse category, measured on a REAL browser, without sacrificing a single drop of UX quality.**
@@ -97,20 +96,20 @@ Or use the TypeScript approach directly in your test suite:
 
 ```ts
 // scripts/audit.ts
-import { chromium } from "playwright";
-import { playAudit } from "playwright-lighthouse";
+import { chromium } from 'playwright';
+import { playAudit } from 'playwright-lighthouse';
 
-const browser = await chromium.launch({ channel: "chrome" });
+const browser = await chromium.launch({ channel: 'chrome' });
 const context = await browser.newContext();
 const page = await context.newPage();
-await page.goto("http://localhost:3000/<route>");
+await page.goto('http://localhost:3000/<route>');
 
 await playAudit({
   page,
   port: 9222,
-  thresholds: { performance: 100, accessibility: 100, "best-practices": 100, seo: 100 },
-  reports: { formats: { html: true, json: true }, name: "lighthouse-<route>" },
-  config: { extends: "lighthouse:default", settings: { formFactor: "mobile" } },
+  thresholds: { performance: 100, accessibility: 100, 'best-practices': 100, seo: 100 },
+  reports: { formats: { html: true, json: true }, name: 'lighthouse-<route>' },
+  config: { extends: 'lighthouse:default', settings: { formFactor: 'mobile' } },
 });
 
 await browser.close();
