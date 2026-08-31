@@ -5,6 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { BusinessModule } from './businesses/business.module';
 import { CustomerModule } from './customers/customer.module';
 import { HealthModule } from './health/health.module';
+import { LeadModule } from './leads/lead.module';
 import { ProductModule } from './products/product.module';
 import { TransactionModule } from './transactions/transaction.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -24,6 +25,7 @@ import { RedisModule } from './redis/redis.module';
     CustomerModule,
     ProductModule,
     TransactionModule,
+    LeadModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

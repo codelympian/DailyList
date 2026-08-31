@@ -6,6 +6,7 @@ const TYPE_ICONS: Record<string, string> = {
   CUSTOMER_CREATED: '✨',
   CUSTOMER_UPDATED: '✏️',
   LEAD_CREATED: '🔥',
+  LEAD_STATUS_CHANGED: '📈',
   PURCHASE: '🛍️',
   PAYMENT: '💰',
   DEBT_CREATED: '💳',

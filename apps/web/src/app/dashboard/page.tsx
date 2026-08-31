@@ -62,6 +62,9 @@ function Dashboard() {
         <Button variant="outline" render={<Link href="/products" />}>
           📦 Products
         </Button>
+        <Button variant="outline" render={<Link href="/leads" />}>
+          🔥 Leads
+        </Button>
       </div>
 
       <Card>

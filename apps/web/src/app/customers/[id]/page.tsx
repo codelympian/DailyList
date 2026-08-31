@@ -15,6 +15,8 @@ import {
   useDeleteCustomer,
 } from '@/hooks/use-customers';
 import { useTransactions } from '@/hooks/use-transactions';
+import { useLeads } from '@/hooks/use-leads';
+import { LeadList } from '@/components/lead-list';
 
 export default function CustomerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -31,6 +33,7 @@ function CustomerProfile({ customerId }: { customerId: string }) {
   const customer = useCustomer(business?.id, customerId);
   const timeline = useCustomerTimeline(business?.id, customerId);
   const transactions = useTransactions(business?.id, { customerId, page: 1 });
+  const leads = useLeads(business?.id, { customerId, page: 1 });
   const deleteCustomer = useDeleteCustomer(business?.id);
 
   if (customer.isPending) {
@@ -113,11 +116,24 @@ function CustomerProfile({ customerId }: { customerId: string }) {
         />
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex gap-2">
         <Button render={<Link href={`/transactions/new?customerId=${c.id}`} />}>
           ➕ Record sale
         </Button>
+        <Button variant="outline" render={<Link href={`/leads/new?customerId=${c.id}`} />}>
+          🔥 Add lead
+        </Button>
       </div>
+
+      <Card className="mb-4">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Leads</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {leads.isPending && <p className="text-sm text-muted-foreground">Loading…</p>}
+          {leads.data && <LeadList leads={leads.data.items} businessId={business?.id} />}
+        </CardContent>
+      </Card>
 
       <Card className="mb-4">
         <CardHeader className="pb-2">

@@ -166,6 +166,29 @@ export interface TransactionDetail extends TransactionSummary {
   payments: PaymentSummary[];
 }
 
+// ============================================================
+// Leads (Phase 4)
+// ============================================================
+
+export type LeadStatus =
+  'NEW' | 'CONTACTED' | 'INTERESTED' | 'QUOTED' | 'NEGOTIATING' | 'WON' | 'LOST';
+
+export interface LeadSummary {
+  id: string;
+  customerId: string;
+  customerName: string;
+  productId: string | null;
+  productName: string | null;
+  description: string | null;
+  status: LeadStatus;
+  estimatedValue: string | null;
+  notes: string | null;
+  lastActivityAt: string;
+  closedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** 409 body when creating/updating a customer collides with an existing identity. */
 export interface DuplicateCustomerError extends ApiErrorBody {
   duplicate: {

@@ -72,6 +72,7 @@ model Business {
   customers    Customer[]
   products     Product[]
   transactions Transaction[]
+  leads        Lead[]
 
   @@map("businesses")
 }
@@ -107,6 +108,7 @@ enum CustomerEventType {
   CUSTOMER_CREATED
   CUSTOMER_UPDATED
   LEAD_CREATED
+  LEAD_STATUS_CHANGED
   MESSAGE_SENT
   MESSAGE_RECEIVED
   QUOTE_REQUESTED
@@ -148,6 +150,7 @@ model Customer {
   identities   CustomerIdentity[]
   events       CustomerEvent[]
   transactions Transaction[]
+  leads        Lead[]
 
   @@index([businessId, deletedAt, name])
   @@index([businessId, deletedAt, createdAt])
@@ -224,6 +227,7 @@ model Product {
 
   business Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
   items    TransactionItem[]
+  leads    Lead[]
 
   @@unique([businessId, sku])
   @@index([businessId, active, name])
@@ -290,6 +294,46 @@ model Payment {
 
   @@index([transactionId])
   @@map("payments")
+}
+
+// ============================================================
+// Phase 4 — Leads
+// ============================================================
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  INTERESTED
+  QUOTED
+  NEGOTIATING
+  WON
+  LOST
+}
+
+model Lead {
+  id         String  @id @default(uuid()) @db.Uuid
+  businessId String  @map("business_id") @db.Uuid
+  customerId String  @map("customer_id") @db.Uuid
+  productId  String? @map("product_id") @db.Uuid
+  // What the customer is interested in when there is no catalog product.
+  description    String?
+  status         LeadStatus     @default(NEW)
+  source         CustomerSource @default(MANUAL)
+  estimatedValue Decimal?       @map("estimated_value") @db.Decimal(14, 2)
+  notes          String?
+  // Recency signal for HOT_LEAD scoring (Phase 6/7); bumped on every change.
+  lastActivityAt DateTime  @default(now()) @map("last_activity_at")
+  closedAt       DateTime? @map("closed_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product  Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, status, lastActivityAt(sort: Desc)])
+  @@index([businessId, customerId])
+  @@map("leads")
 }
 
 model BusinessMembership {
