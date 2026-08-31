@@ -14,7 +14,7 @@ const TYPE_ICONS: Record<string, string> = {
   FOLLOW_UP: '📞',
   FOLLOW_UP_COMPLETED: '✅',
   FOLLOW_UP_SKIPPED: '⏭️',
-  MESSAGE_SENT: '💬',
+  MESSAGE_SENT: '📲',
   MESSAGE_RECEIVED: '💬',
   CUSTOMER_REACTIVATED: '🎉',
   CUSTOMER_LOST: '😴',

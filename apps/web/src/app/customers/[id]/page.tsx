@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuthGate } from '@/components/auth-gate';
 import { IntelligenceCard } from '@/components/intelligence-card';
 import { StatusChip } from '@/components/status-chip';
+import { WhatsAppActions } from '@/components/whatsapp-actions';
 import { Timeline } from '@/components/timeline';
 import {
   useActiveBusiness,
@@ -118,6 +119,12 @@ function CustomerProfile({ customerId }: { customerId: string }) {
       </div>
 
       <IntelligenceCard businessId={business?.id} customerId={c.id} />
+
+      {c.phone && (
+        <div className="mb-4">
+          <WhatsAppActions businessId={business?.id} customerId={c.id} />
+        </div>
+      )}
 
       <div className="mb-4 flex gap-2">
         <Button render={<Link href={`/transactions/new?customerId=${c.id}`} />}>

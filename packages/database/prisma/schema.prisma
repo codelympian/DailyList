@@ -77,6 +77,7 @@ model Business {
   settings         BusinessSettings?
   recommendations  DailyRecommendation[]
   messageTemplates MessageTemplate[]
+  messages         Message[]
 
   @@map("businesses")
 }
@@ -160,6 +161,7 @@ model Customer {
   leads                  Lead[]
   communicationPrefs     CommunicationPreference[]
   recommendations        DailyRecommendation[]
+  messages               Message[]
 
   @@index([businessId, deletedAt, name])
   @@index([businessId, deletedAt, createdAt])
@@ -542,8 +544,9 @@ model DailyRecommendation {
   createdAt   DateTime             @default(now()) @map("created_at")
   updatedAt   DateTime             @updatedAt @map("updated_at")
 
-  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages Message[]
 
   /// Prevents duplicate recommendations for the same customer on the same day.
   @@unique([businessId, customerId, recommendationDate])
@@ -579,6 +582,51 @@ model MessageTemplate {
 
   @@unique([businessId, category])
   @@map("message_templates")
+}
+
+// ============================================================
+// Phase 9 — WhatsApp quick send (click-to-chat only)
+// ============================================================
+
+/// What the owner actually did. These are the ONLY outcomes Dailylist can
+/// observe with click-to-chat: it hands the message to WhatsApp and cannot
+/// see what happens next.
+///
+/// There is deliberately no DELIVERED / READ / REPLIED value here — claiming
+/// any of those would be inventing information we do not have. They can only
+/// be added alongside a real WhatsApp Business Platform integration.
+enum MessageAction {
+  WHATSAPP_OPENED
+  COPIED
+}
+
+/// A record of the owner initiating contact. Doubles as the MVP follow-up
+/// record: recommendation status carries the outcome, this carries the act.
+model Message {
+  id               String  @id @default(uuid()) @db.Uuid
+  businessId       String  @map("business_id") @db.Uuid
+  customerId       String  @map("customer_id") @db.Uuid
+  /// Set when the send came from a daily recommendation card.
+  recommendationId String? @map("recommendation_id") @db.Uuid
+  /// Who tapped the button.
+  sentById         String? @map("sent_by_id") @db.Uuid
+
+  channel  CommunicationChannel @default(WHATSAPP)
+  action   MessageAction
+  /// Exactly what the owner was shown, frozen at send time.
+  body     String
+  /// The E.164 number the link pointed at.
+  toPhone  String?              @map("to_phone")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  business       Business             @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer       Customer             @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  recommendation DailyRecommendation? @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, customerId, createdAt(sort: Desc)])
+  @@index([businessId, createdAt(sort: Desc)])
+  @@map("messages")
 }
 
 model BusinessMembership {

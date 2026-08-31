@@ -11,6 +11,9 @@
     "lint": "eslint src",
     "test": "jest"
   },
+  "dependencies": {
+    "@dailylist/validation": "*"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.14",
     "@types/node": "^24",

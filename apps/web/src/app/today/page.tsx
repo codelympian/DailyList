@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AuthGate } from '@/components/auth-gate';
+import { WhatsAppActions } from '@/components/whatsapp-actions';
 import { useActiveBusiness } from '@/hooks/use-customers';
 import {
   useDailySummary,
@@ -145,7 +146,6 @@ function RecommendationCard({
   businessId: string | undefined;
 }) {
   const setStatus = useSetRecommendationStatus(businessId);
-  const [copied, setCopied] = useState(false);
   const meta = CATEGORY_META[recommendation.category];
 
   return (
@@ -184,20 +184,17 @@ function RecommendationCard({
             Suggested message
           </p>
           <p className="text-sm whitespace-pre-wrap">{recommendation.suggestedMessage}</p>
-          <button
-            type="button"
-            className="mt-2 text-xs font-medium text-primary underline-offset-4 hover:underline"
-            onClick={() => {
-              void navigator.clipboard
-                .writeText(recommendation.suggestedMessage ?? '')
-                .then(() => setCopied(true))
-                .catch(() => setCopied(false));
-            }}
-          >
-            {copied ? 'Copied ✓' : 'Copy message'}
-          </button>
         </div>
       )}
+
+      <div className="mb-2">
+        <WhatsAppActions
+          businessId={businessId}
+          customerId={recommendation.customerId}
+          recommendationId={recommendation.id}
+          message={recommendation.suggestedMessage}
+        />
+      </div>
 
       <div className="flex gap-2">
         <Button
