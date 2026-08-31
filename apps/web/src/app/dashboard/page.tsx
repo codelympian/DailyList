@@ -65,6 +65,9 @@ function Dashboard() {
         <Button variant="outline" render={<Link href="/leads" />}>
           🔥 Leads
         </Button>
+        <Button variant="outline" render={<Link href="/imports" />}>
+          📄 Import
+        </Button>
       </div>
 
       <Card>

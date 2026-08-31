@@ -73,6 +73,7 @@ model Business {
   products     Product[]
   transactions Transaction[]
   leads        Lead[]
+  importJobs   ImportJob[]
 
   @@map("businesses")
 }
@@ -334,6 +335,89 @@ model Lead {
   @@index([businessId, status, lastActivityAt(sort: Desc)])
   @@index([businessId, customerId])
   @@map("leads")
+}
+
+// ============================================================
+// Phase 5 — CSV/XLSX import (staging, never direct to production tables)
+// ============================================================
+
+enum ImportFileType {
+  CSV
+  XLSX
+}
+
+enum ImportStatus {
+  PENDING_MAPPING
+  VALIDATING
+  PREVIEW
+  IMPORTING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ImportRowStatus {
+  PENDING
+  VALID
+  INVALID
+  DUPLICATE
+  IMPORTED
+  SKIPPED
+  FAILED
+}
+
+model ImportJob {
+  id          String         @id @default(uuid()) @db.Uuid
+  businessId  String         @map("business_id") @db.Uuid
+  createdById String         @map("created_by_id") @db.Uuid
+  fileName    String         @map("file_name")
+  fileType    ImportFileType @map("file_type")
+  status      ImportStatus   @default(PENDING_MAPPING)
+  // Detected source column headers, in order.
+  columns          Json
+  suggestedMapping Json  @map("suggested_mapping")
+  // Confirmed mapping: { targetField: sourceHeader }.
+  mapping Json?
+
+  totalRows     Int @default(0) @map("total_rows")
+  validRows     Int @default(0) @map("valid_rows")
+  invalidRows   Int @default(0) @map("invalid_rows")
+  duplicateRows Int @default(0) @map("duplicate_rows")
+  importedRows  Int @default(0) @map("imported_rows")
+  skippedRows   Int @default(0) @map("skipped_rows")
+
+  error       String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  completedAt DateTime? @map("completed_at")
+
+  business Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  rows     ImportRow[]
+
+  @@index([businessId, createdAt(sort: Desc)])
+  @@map("import_jobs")
+}
+
+model ImportRow {
+  id          String          @id @default(uuid()) @db.Uuid
+  businessId  String          @map("business_id") @db.Uuid
+  importJobId String          @map("import_job_id") @db.Uuid
+  rowNumber   Int             @map("row_number")
+  // Original cell values keyed by source header.
+  raw Json
+  // Normalized values after mapping (name, phone E.164, amount, ...).
+  normalized Json?
+  status     ImportRowStatus @default(PENDING)
+  // [{ field, message }] for INVALID rows.
+  errors                Json?
+  duplicateOfCustomerId String? @map("duplicate_of_customer_id") @db.Uuid
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  importJob ImportJob @relation(fields: [importJobId], references: [id], onDelete: Cascade)
+
+  @@unique([importJobId, rowNumber])
+  @@index([importJobId, status])
+  @@map("import_rows")
 }
 
 model BusinessMembership {

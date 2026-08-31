@@ -189,6 +189,45 @@ export interface LeadSummary {
   updatedAt: string;
 }
 
+// ============================================================
+// Imports (Phase 5)
+// ============================================================
+
+export type ImportStatus =
+  'PENDING_MAPPING' | 'VALIDATING' | 'PREVIEW' | 'IMPORTING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+
+export type ImportRowStatus =
+  'PENDING' | 'VALID' | 'INVALID' | 'DUPLICATE' | 'IMPORTED' | 'SKIPPED' | 'FAILED';
+
+export interface ImportJobSummary {
+  id: string;
+  fileName: string;
+  fileType: 'CSV' | 'XLSX';
+  status: ImportStatus;
+  columns: string[];
+  suggestedMapping: Record<string, string>;
+  mapping: Record<string, string> | null;
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  duplicateRows: number;
+  importedRows: number;
+  skippedRows: number;
+  error: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
+export interface ImportRowSummary {
+  id: string;
+  rowNumber: number;
+  raw: Record<string, string>;
+  normalized: Record<string, string> | null;
+  status: ImportRowStatus;
+  errors: { field: string; message: string }[] | null;
+  duplicateOfCustomerId: string | null;
+}
+
 /** 409 body when creating/updating a customer collides with an existing identity. */
 export interface DuplicateCustomerError extends ApiErrorBody {
   duplicate: {

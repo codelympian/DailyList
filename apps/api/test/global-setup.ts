@@ -22,7 +22,7 @@ export default async function globalSetup(): Promise<void> {
   const prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
   try {
     await prisma.$executeRawUnsafe(
-      'TRUNCATE TABLE leads, payments, transaction_items, transactions, products, customer_events, customer_identities, customers, sessions, business_memberships, businesses, users CASCADE',
+      'TRUNCATE TABLE import_rows, import_jobs, leads, payments, transaction_items, transactions, products, customer_events, customer_identities, customers, sessions, business_memberships, businesses, users CASCADE',
     );
   } finally {
     await prisma.$disconnect();
