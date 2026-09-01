@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ChevronRight, Plus, Search, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AuthGate } from '@/components/auth-gate';
-import { EmptyState, ErrorState, SkeletonList } from '@/components/states';
+import { EmptyState, ErrorState, RowSkeletons } from '@/components/states';
+import { PageHeader } from '@/components/page-header';
 import { useActiveBusiness, useCustomers } from '@/hooks/use-customers';
 
 export default function CustomersPage() {
@@ -25,37 +27,44 @@ function CustomerList() {
   const totalPages = customers.data ? Math.max(1, Math.ceil(customers.data.total / 20)) : 1;
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
-      <header className="mb-4 flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
-          {customers.data && (
-            <p className="text-sm text-muted-foreground">
-              <span className="font-mono tabular-nums">{customers.data.total}</span> total
-            </p>
-          )}
-        </div>
-        <Button className="min-h-11" render={<Link href="/customers/new" />}>
-          Add customer
-        </Button>
-      </header>
-
-      <label htmlFor="customer-search" className="sr-only">
-        Search customers
-      </label>
-      <Input
-        id="customer-search"
-        type="search"
-        placeholder="Search name, phone, or email…"
-        value={search}
-        onChange={(e) => {
-          setSearch(e.target.value);
-          setPage(1);
-        }}
-        className="mb-4"
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6 sm:py-10">
+      <PageHeader
+        title="Customers"
+        subtitle={
+          customers.data
+            ? `${customers.data.total.toLocaleString()} ${customers.data.total === 1 ? 'person' : 'people'}`
+            : undefined
+        }
+        action={
+          <Button className="min-h-11" render={<Link href="/customers/new" />}>
+            <Plus className="size-4" aria-hidden />
+            Add customer
+          </Button>
+        }
       />
 
-      {customers.isPending && <SkeletonList rows={4} />}
+      <div className="relative mb-4">
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
+        <label htmlFor="customer-search" className="sr-only">
+          Search customers
+        </label>
+        <Input
+          id="customer-search"
+          type="search"
+          placeholder="Search name, phone, or email"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
+          className="h-11 pl-9"
+        />
+      </div>
+
+      {customers.isPending && <RowSkeletons rows={6} />}
 
       {customers.isError && (
         <ErrorState
@@ -66,16 +75,21 @@ function CustomerList() {
 
       {customers.data && customers.data.items.length === 0 && (
         <EmptyState
-          icon={search ? '🔍' : '👥'}
+          icon={search ? Search : Users}
           title={search ? 'No matches' : 'No customers yet'}
           body={
             search
               ? `Nothing matches "${search}". Try a different name or phone number.`
-              : 'Add customers one by one, or import your existing list from a spreadsheet.'
+              : 'Add customers one at a time, or bring your whole list across from a spreadsheet.'
           }
           {...(search
             ? {}
-            : { actionLabel: 'Import a spreadsheet', actionHref: '/imports' as const })}
+            : {
+                actionLabel: 'Add a customer',
+                actionHref: '/customers/new',
+                secondaryLabel: 'Import a spreadsheet',
+                secondaryHref: '/imports',
+              })}
         />
       )}
 
@@ -85,12 +99,15 @@ function CustomerList() {
             <li key={customer.id}>
               <Link
                 href={`/customers/${customer.id}`}
-                className="flex min-h-16 items-center justify-between gap-3 rounded-xl border bg-card p-3 transition-colors hover:bg-secondary/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="group flex min-h-16 items-center gap-3 rounded-xl bg-card p-3.5 shadow-e1 ring-1 ring-border/50 transition-shadow hover:shadow-e2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                <span className="min-w-0">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-sm font-medium text-muted-foreground">
+                  {initials(customer.name)}
+                </span>
+                <span className="min-w-0 flex-1">
                   <span className="block truncate font-medium">{customer.name}</span>
                   <span className="block truncate text-sm text-muted-foreground">
-                    {customer.phone ?? customer.email ?? 'No contact info'}
+                    {customer.phone ?? customer.email ?? 'No contact details'}
                   </span>
                 </span>
                 <span className="shrink-0 text-right">
@@ -105,6 +122,10 @@ function CustomerList() {
                     </span>
                   )}
                 </span>
+                <ChevronRight
+                  className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+                  aria-hidden
+                />
               </Link>
             </li>
           ))}
@@ -112,7 +133,7 @@ function CustomerList() {
       )}
 
       {customers.data && customers.data.total > 20 && (
-        <nav aria-label="Pagination" className="mt-4 flex items-center justify-between">
+        <nav aria-label="Pagination" className="mt-5 flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"
@@ -139,4 +160,10 @@ function CustomerList() {
       )}
     </main>
   );
+}
+
+/** Initials stand in for a photo — better than a generic person icon. */
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('') || '?';
 }

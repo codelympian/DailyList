@@ -1,15 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { Check, Copy, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRecordMessage, useWhatsAppLink } from '@/hooks/use-whatsapp';
 
 /**
  * Send on WhatsApp + Copy.
  *
- * Tapping Send opens WhatsApp with the message pre-filled and records that
- * the owner initiated contact. Dailylist cannot see whether the message was
- * actually sent, delivered or read, so nothing here claims otherwise.
+ * Send is the dominant control on the card — it is the action the whole
+ * product exists to produce. Tapping it opens WhatsApp with the message
+ * prefilled and records that contact was initiated. Dailylist cannot see
+ * whether the message was sent, delivered or read, and never implies it can.
  */
 export function WhatsAppActions({
   businessId,
@@ -21,7 +23,6 @@ export function WhatsAppActions({
   businessId: string | undefined;
   customerId: string;
   recommendationId?: string;
-  /** Message shown on the card; the link falls back to the server's copy. */
   message?: string | null;
   onSent?: () => void;
 }) {
@@ -34,7 +35,7 @@ export function WhatsAppActions({
 
   const handleSend = () => {
     if (!canSend) return;
-    // Open first so the tap is not blocked by the popup blocker, then record.
+    // Open first so the tap is not swallowed by the popup blocker, then record.
     window.open(link.data!.url!, '_blank', 'noopener,noreferrer');
     record.mutate(
       { customerId, recommendationId, action: 'WHATSAPP_OPENED', body },
@@ -57,14 +58,27 @@ export function WhatsAppActions({
     <div className="flex flex-col gap-1.5">
       <div className="flex gap-2">
         <Button
-          className="flex-1 bg-[#25D366] text-white hover:bg-[#1faa52]"
+          size="lg"
+          className="min-h-12 flex-1 bg-whatsapp text-base font-semibold text-white shadow-e1 transition-transform hover:bg-whatsapp/90 active:scale-[0.99] motion-reduce:transition-none"
           disabled={!canSend || link.isPending}
           onClick={handleSend}
         >
+          <MessageCircle className="size-5" aria-hidden />
           {link.isPending ? 'Preparing…' : 'Send on WhatsApp'}
         </Button>
-        <Button variant="outline" disabled={!body} onClick={handleCopy}>
-          {copied ? 'Copied ✓' : 'Copy'}
+        <Button
+          variant="outline"
+          size="lg"
+          className="min-h-12 px-3"
+          disabled={!body}
+          onClick={handleCopy}
+          aria-label={copied ? 'Message copied' : 'Copy message'}
+        >
+          {copied ? (
+            <Check className="size-4 text-whatsapp-ink" aria-hidden />
+          ) : (
+            <Copy className="size-4" aria-hidden />
+          )}
         </Button>
       </div>
 
@@ -75,7 +89,7 @@ export function WhatsAppActions({
       )}
       {link.data?.ok && link.data.phone && (
         <p className="text-xs text-muted-foreground">
-          Opens WhatsApp to {link.data.phone}. You still send it yourself.
+          Opens WhatsApp to {link.data.phone}. You send it yourself.
         </p>
       )}
     </div>

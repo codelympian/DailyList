@@ -16,7 +16,7 @@ function unique(): string {
 
 async function register(page: Page): Promise<string> {
   const email = `e2e.${unique()}@example.com`;
-  await page.goto('/register');
+  await page.goto('/signup');
   await page.getByLabel('Your name').fill('E2E Owner');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(PASSWORD);
@@ -27,7 +27,11 @@ async function register(page: Page): Promise<string> {
 
 async function createBusiness(page: Page, name: string): Promise<void> {
   await page.getByLabel('Business name').fill(name);
-  await page.getByRole('button', { name: 'Create business' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  // Steps 3-5: how you sell -> add customers -> ready.
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: "I'll do this later" }).click();
+  await page.getByRole('button', { name: 'Go to my list' }).click();
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
@@ -36,7 +40,6 @@ test.describe('Dailylist MVP workflow', () => {
     // 1–2. Register and create a business.
     await register(page);
     await createBusiness(page, 'E2E Beauty');
-    await expect(page.getByRole('heading', { name: "Today's Sales List" })).toBeVisible();
 
     // A brand-new business has nothing to act on, and says so usefully.
     await expect(page.getByText('No one to contact yet')).toBeVisible();
@@ -78,14 +81,14 @@ test.describe('Dailylist MVP workflow', () => {
     // 7. The customer profile reflects the sale and the debt.
     await page.goto(customerUrl);
     await expect(page.getByText('Owes you')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Timeline' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
 
     // 8. Today's list now has someone on it, with a reason and a message.
     await page.goto('/dashboard');
     await page.getByRole('button', { name: 'Refresh list' }).click();
     const card = page.getByRole('listitem').filter({ hasText: 'Ada Okafor' }).first();
     await expect(card).toBeVisible({ timeout: 15_000 });
-    await expect(card.getByText('Why today?')).toBeVisible();
+    await expect(card.getByText('Why today')).toBeVisible();
     await expect(card.getByText('Suggested message')).toBeVisible();
     await expect(card.getByText(/Owes ₦20,000/)).toBeVisible();
 
@@ -166,6 +169,7 @@ test.describe('Dailylist MVP workflow', () => {
     await page.goto('/customers');
     await expect(page.getByRole('heading', { level: 1, name: 'Customers' })).toBeVisible();
     await page.getByRole('navigation', { name: 'Main' }).first().getByText('Today').click();
-    await expect(page.getByRole('heading', { level: 1, name: "Today's Sales List" })).toBeVisible();
+    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByText('No one to contact yet')).toBeVisible();
   });
 });

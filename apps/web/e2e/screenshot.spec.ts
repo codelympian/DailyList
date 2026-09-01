@@ -2,21 +2,45 @@ import { test } from '@playwright/test';
 
 /**
  * Not an assertion suite — a visual check. Seeds a realistic list and
- * captures the screens so the design can be reviewed rather than imagined.
+ * captures each screen so the design can be reviewed rather than imagined.
  * Run with: npx playwright test screenshot --project=mobile
  */
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000';
 
-test('capture the daily list', async ({ page }) => {
-  const email = `shot.${Date.now()}@example.com`;
-  await page.goto('/register');
+test('capture the public pages', async ({ page }, testInfo) => {
+  const tag = testInfo.project.name;
+  for (const [name, path] of [
+    ['landing', '/'],
+    ['pricing', '/pricing'],
+    ['login', '/login'],
+    ['signup', '/signup'],
+  ] as const) {
+    await page.goto(path);
+    await page.waitForLoadState('networkidle');
+    await page.screenshot({ path: `screenshots/${tag}-${name}.png`, fullPage: true });
+  }
+});
+
+test('capture the app', async ({ page }, testInfo) => {
+  const tag = testInfo.project.name;
+  const email = `shot.${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
+
+  await page.goto('/signup');
   await page.getByLabel('Your name').fill('Ada Okafor');
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill('sup3rsecret!');
   await page.getByRole('button', { name: 'Create account' }).click();
+
   await page.getByLabel('Business name').fill("Ada's Glow");
-  await page.getByRole('button', { name: 'Create business' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.screenshot({ path: `screenshots/${tag}-onboarding-step3.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: "I'll do this later" }).click();
+  await page.screenshot({ path: `screenshots/${tag}-onboarding-done.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Go to my list' }).click();
   await page.waitForURL(/\/dashboard/);
+
+  await page.screenshot({ path: `screenshots/${tag}-dashboard-empty.png`, fullPage: true });
 
   // Seed a realistic mixed list: a hot lead, a debtor and a reorder.
   await page.evaluate(async (apiUrl) => {
@@ -61,10 +85,18 @@ test('capture the daily list', async ({ page }) => {
   }, API_URL);
 
   await page.goto('/dashboard');
-  await page.waitForSelector('text=Why today?');
-  await page.screenshot({ path: 'screenshots/dashboard.png', fullPage: true });
+  await page.waitForSelector('text=Why today');
+  await page.screenshot({ path: `screenshots/${tag}-dashboard.png`, fullPage: true });
 
   await page.goto('/customers');
   await page.waitForSelector('text=Bola Ade');
-  await page.screenshot({ path: 'screenshots/customers.png', fullPage: true });
+  await page.screenshot({ path: `screenshots/${tag}-customers.png`, fullPage: true });
+
+  await page.getByText('Bola Ade').first().click();
+  await page.waitForURL(/\/customers\/[0-9a-f-]{36}/);
+  await page.screenshot({ path: `screenshots/${tag}-customer-profile.png`, fullPage: true });
+
+  await page.goto('/sales');
+  await page.waitForLoadState('networkidle');
+  await page.screenshot({ path: `screenshots/${tag}-sales.png`, fullPage: true });
 });

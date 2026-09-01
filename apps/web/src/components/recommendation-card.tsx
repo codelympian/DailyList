@@ -1,91 +1,77 @@
 'use client';
 
 import Link from 'next/link';
+import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WhatsAppActions } from '@/components/whatsapp-actions';
-import {
-  useSetRecommendationStatus,
-  type RecommendationCategory,
-  type RecommendationView,
-} from '@/hooks/use-recommendations';
-
-export const CATEGORY_META: Record<
-  RecommendationCategory,
-  { label: string; emoji: string; chip: string }
-> = {
-  HOT_LEAD: {
-    label: 'Hot lead',
-    emoji: '🔥',
-    chip: 'bg-orange-100 text-orange-900 dark:bg-orange-950/60 dark:text-orange-200',
-  },
-  REORDER_DUE: {
-    label: 'Reorder',
-    emoji: '💰',
-    chip: 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200',
-  },
-  DEBTOR: {
-    label: 'Unpaid',
-    emoji: '💳',
-    chip: 'bg-red-100 text-red-900 dark:bg-red-950/60 dark:text-red-200',
-  },
-  LOST_CUSTOMER: {
-    label: 'Reactivate',
-    emoji: '😴',
-    chip: 'bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200',
-  },
-};
+import { cn } from '@/lib/utils';
+import { CATEGORY_META, type RecommendationCategory } from '@/lib/categories';
+import { useSetRecommendationStatus, type RecommendationView } from '@/hooks/use-recommendations';
 
 /**
- * One person to contact: who, why, what to say, and the actions.
+ * The hero interaction: one person to contact, and everything needed to act.
  *
- * Reading order follows the owner's decision: category → name → why →
- * message → act. The send action sits at the bottom, inside the thumb zone.
+ * Reading order mirrors the decision the owner is making — what kind of
+ * follow-up, who, why now, what to say — and only then the actions, with
+ * Send carrying the visual weight because it is the point of the product.
  */
 export function RecommendationCard({
   recommendation,
   businessId,
+  index = 0,
 }: {
   recommendation: RecommendationView;
   businessId: string | undefined;
+  /** Position in the list, used to stagger the entrance. */
+  index?: number;
 }) {
   const setStatus = useSetRecommendationStatus(businessId);
-  const meta = CATEGORY_META[recommendation.category];
+  const meta = CATEGORY_META[recommendation.category as RecommendationCategory];
+  const Icon = meta.icon;
   const busy = setStatus.isPending;
 
   return (
-    <li className="rounded-2xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.chip}`}
-          >
-            <span aria-hidden>{meta.emoji}</span>
-            {meta.label}
-          </span>
-          <h3 className="mt-1.5 truncate text-lg font-semibold leading-tight">
-            <Link
-              href={`/customers/${recommendation.customerId}`}
-              className="rounded hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              {recommendation.customerName}
-            </Link>
-          </h3>
-        </div>
+    <li
+      className="animate-in fade-in slide-in-from-bottom-2 fill-mode-backwards rounded-2xl bg-card p-5 shadow-e2 ring-1 ring-border/50 duration-300 motion-reduce:animate-none"
+      style={{ animationDelay: `${Math.min(index, 6) * 45}ms` }}
+    >
+      <div className="flex items-start justify-between gap-3">
         <span
-          className="shrink-0 rounded-lg bg-secondary px-2 py-1 font-mono text-sm font-semibold tabular-nums"
+          className={cn(
+            'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium',
+            meta.chip,
+          )}
+        >
+          <Icon className="size-3.5" aria-hidden />
+          {meta.label}
+        </span>
+        <span
+          className="rounded-lg bg-secondary px-2 py-1 font-mono text-xs font-semibold tabular-nums text-muted-foreground"
           title="Priority score out of 100"
         >
           {recommendation.score}
         </span>
       </div>
 
-      <div className="mb-3">
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Why today?
+      <Link
+        href={`/customers/${recommendation.customerId}`}
+        className="group mt-2 inline-flex items-center gap-1 rounded text-2xl font-semibold leading-tight tracking-tight focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        {recommendation.customerName}
+        <ChevronRight
+          className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 motion-reduce:transition-none"
+          aria-hidden
+        />
+      </Link>
+
+      <div className="mt-3">
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          Why today
         </p>
-        <ul className="flex flex-col gap-0.5">
-          {recommendation.reasonText.map((reason, index) => (
-            <li key={index} className="text-sm leading-snug">
+        <ul className="mt-1 flex flex-col gap-1">
+          {recommendation.reasonText.map((reason, i) => (
+            <li key={i} className="flex gap-2 text-sm leading-snug">
+              <span aria-hidden className="mt-1.5 size-1 shrink-0 rounded-full bg-honey" />
               {reason}
             </li>
           ))}
@@ -93,17 +79,17 @@ export function RecommendationCard({
       </div>
 
       {recommendation.suggestedMessage && (
-        <div className="mb-3 rounded-xl bg-secondary/70 p-3">
-          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <blockquote className="mt-4 rounded-xl border-l-2 border-honey/50 bg-secondary/60 py-3 pl-3.5 pr-3">
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Suggested message
           </p>
-          <p className="whitespace-pre-wrap text-sm leading-relaxed">
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed">
             {recommendation.suggestedMessage}
           </p>
-        </div>
+        </blockquote>
       )}
 
-      <div className="mb-2">
+      <div className="mt-4">
         <WhatsAppActions
           businessId={businessId}
           customerId={recommendation.customerId}
@@ -112,8 +98,9 @@ export function RecommendationCard({
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className="mt-2 flex gap-2">
         <Button
+          variant="outline"
           size="sm"
           className="min-h-11 flex-1"
           disabled={busy}
@@ -122,9 +109,9 @@ export function RecommendationCard({
           Mark done
         </Button>
         <Button
+          variant="ghost"
           size="sm"
-          variant="outline"
-          className="min-h-11"
+          className="min-h-11 text-muted-foreground"
           disabled={busy}
           onClick={() => setStatus.mutate({ id: recommendation.id, status: 'SKIPPED' })}
         >
@@ -134,7 +121,7 @@ export function RecommendationCard({
 
       {setStatus.isError && (
         <p role="alert" className="mt-2 text-xs text-destructive">
-          Could not update this card. Check your connection and try again.
+          That did not save. Check your connection and try again.
         </p>
       )}
     </li>
