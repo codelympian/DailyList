@@ -155,6 +155,23 @@ test.describe('Dailylist MVP workflow', () => {
     await expect(page.getByText('Done today (1)')).toBeVisible({ timeout: 15_000 });
   });
 
+  test('a signed-in owner can log out from the app shell', async ({ page }, testInfo) => {
+    await register(page);
+    await createBusiness(page, 'Logout Test Shop');
+
+    if (testInfo.project.name === 'mobile') {
+      // Thumb bar -> More -> Log out.
+      await page.getByRole('button', { name: 'More' }).click();
+    }
+    // On desktop the control is always visible at the foot of the sidebar.
+    await page.getByRole('button', { name: 'Log out' }).click();
+
+    await expect(page).toHaveURL(/\/login/);
+    // The session is really gone, not just the redirect.
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/login/);
+  });
+
   test('protected pages send signed-out visitors to login', async ({ page }) => {
     await page.context().clearCookies();
     await page.goto('/dashboard');

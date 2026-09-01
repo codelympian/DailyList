@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   ClipboardList,
   Users,
@@ -12,9 +12,11 @@ import {
   Upload,
   Settings,
   MoreHorizontal,
+  LogOut,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLogout, useMe } from '@/hooks/use-auth';
 
 interface NavItem {
   href: string;
@@ -51,7 +53,15 @@ function isActive(pathname: string, href: string): boolean {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [moreOpen, setMoreOpen] = useState(false);
+  const me = useMe();
+  const logout = useLogout();
+
+  const signOut = () => {
+    setMoreOpen(false);
+    logout.mutate(undefined, { onSuccess: () => router.replace('/login') });
+  };
 
   if (isChromeless(pathname)) {
     return (
@@ -99,6 +109,36 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+
+          {/* Account sits at the foot of the rail. Logging out is a visible
+              control rather than something hidden inside a menu — there are
+              only seven destinations, so a menu would add a tap and hide it. */}
+          <div className="mt-auto border-t border-border/70 pt-3">
+            <div className="flex items-center gap-2.5 px-2.5 py-1.5">
+              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-xs font-medium">
+                {initials(me.data?.user.name)}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">
+                  {me.data?.user.name ?? 'Account'}
+                </span>
+                {me.data?.businesses[0] && (
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {me.data.businesses[0].name}
+                  </span>
+                )}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={signOut}
+              disabled={logout.isPending}
+              className="mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              <LogOut className="size-4 shrink-0" aria-hidden />
+              {logout.isPending ? 'Logging out…' : 'Log out'}
+            </button>
+          </div>
         </aside>
       </div>
 
@@ -169,10 +209,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </li>
                 );
               })}
+              <li className="mt-1 border-t border-border/70 pt-1">
+                <button
+                  type="button"
+                  onClick={signOut}
+                  disabled={logout.isPending}
+                  className="flex min-h-12 w-full items-center gap-3 rounded-lg px-2 text-sm text-foreground disabled:opacity-50"
+                >
+                  <LogOut className="size-4 text-muted-foreground" aria-hidden />
+                  {logout.isPending ? 'Logging out…' : 'Log out'}
+                </button>
+              </li>
             </ul>
           </div>
         )}
       </nav>
     </div>
   );
+}
+
+/** Initials stand in for an avatar we do not have. */
+function initials(name: string | undefined): string {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map((part) => part[0]?.toUpperCase() ?? '').join('') || '?';
 }

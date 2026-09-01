@@ -7,14 +7,14 @@ the 138 API integration tests passed unmodified throughout.
 
 ## Problems this phase fixed
 
-| Problem | Evidence before |
-| --- | --- |
-| Emoji used as an icon system | 14 files used 🔥💰💳 as UI icons; `lucide-react` was installed with **0 imports**. Emoji render differently per OS — the loudest "not a real product" signal. |
-| No component vocabulary | Six primitives existed. No badge, alert, dialog, dropdown, tabs, table, skeleton, avatar — so every page invented its own chip and panel markup. |
-| Onboarding was one form | A 75-line business-name form with no steps, progress or welcome. |
-| No marketing site | `/` was a 49-line app teaser. No `/pricing`, no `/signup`. |
-| Navigation exposed the data model | "Segments" is developer vocabulary; Sales and Leads were missing from nav despite existing. |
-| Card-in-card density | Cards nested in cards with borders on everything. |
+| Problem                           | Evidence before                                                                                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Emoji used as an icon system      | 14 files used 🔥💰💳 as UI icons; `lucide-react` was installed with **0 imports**. Emoji render differently per OS — the loudest "not a real product" signal. |
+| No component vocabulary           | Six primitives existed. No badge, alert, dialog, dropdown, tabs, table, skeleton, avatar — so every page invented its own chip and panel markup.              |
+| Onboarding was one form           | A 75-line business-name form with no steps, progress or welcome.                                                                                              |
+| No marketing site                 | `/` was a 49-line app teaser. No `/pricing`, no `/signup`.                                                                                                    |
+| Navigation exposed the data model | "Segments" is developer vocabulary; Sales and Leads were missing from nav despite existing.                                                                   |
+| Card-in-card density              | Cards nested in cards with borders on everything.                                                                                                             |
 
 ## Design system
 
@@ -82,19 +82,19 @@ segment insight lives on the customer profile, where it is actually useful).
 
 ## Verification (all actually run on 2026-09-01)
 
-| Check | Result |
-| --- | --- |
-| `npm run build` — 10 workspaces | ✅ pass |
+| Check                                                    | Result  |
+| -------------------------------------------------------- | ------- |
+| `npm run build` — 10 workspaces                          | ✅ pass |
 | `npm run typecheck` / `lint` / `format:check` — 17 tasks | ✅ pass |
-| Unit tests — 236 | ✅ pass |
-| **API integration tests — 138, unmodified** | ✅ pass |
-| Playwright E2E — 8, mobile (Pixel 7) + desktop | ✅ pass |
-| Visual review of 11 screens on both viewports | ✅ done |
+| Unit tests — 236                                         | ✅ pass |
+| **API integration tests — 138, unmodified**              | ✅ pass |
+| Playwright E2E — 10, mobile (Pixel 7) + desktop           | ✅ pass |
+| Visual review of 11 screens on both viewports            | ✅ done |
 
 Existing functionality confirmed still working by the E2E suite: signup, login,
 business creation, customer creation, product creation, transaction creation
 (₦50,000 with ₦30,000 paid → ₦20,000 owing), recommendation generation,
-suggested messages, the WhatsApp link, mark done, skip, and the timeline.
+suggested messages, the WhatsApp link, mark done, skip, the timeline, and logout.
 
 ## Bugs found and fixed during this phase
 
@@ -112,6 +112,14 @@ suggested messages, the WhatsApp link, mark done, skip, and the timeline.
    current step + bar) that works at every width.
 5. **Ragged left edge on the landing page** — FAQ and the final CTA used
    narrower containers than the sections above them.
+6. **No way to log out.** Retiring `/more` removed the only logout control and
+   the new shell never replaced it — `useLogout` had zero usages app-wide.
+   Reported by the user after the phase was committed. The account block now
+   sits at the foot of the sidebar with a visible **Log out** control (and in
+   the mobile More sheet); a dropdown was tried first but the Base UI menu did
+   not open on click, and hiding logout behind a menu was the wrong call for a
+   seven-destination app anyway. A regression test now covers it on both
+   viewports.
 
 ## Deliberate omissions
 
