@@ -12,7 +12,7 @@ export function ProductPreview() {
     <div
       role="img"
       aria-label="Example of the Dailylist daily sales list showing two customers to contact"
-      className="w-full max-w-sm rounded-3xl bg-card p-4 shadow-e3 ring-1 ring-border/60"
+      className="w-full max-w-sm rounded-3xl bg-card p-4 text-card-foreground shadow-e3 ring-1 ring-border/60"
     >
       <div className="mb-4">
         <p className="text-sm font-semibold tracking-tight">Good morning, Ada</p>
