@@ -40,3 +40,7 @@ Thumbs.db
 
 # Playwright visual checks (local only)
 screenshots/
+
+# Python bytecode from skill scripts
+__pycache__/
+*.pyc
