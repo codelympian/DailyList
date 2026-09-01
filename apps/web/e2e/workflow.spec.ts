@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { cleanupUsers, createConfirmedUser } from './supabase-users';
 
 /**
  * The MVP completion criteria, walked end to end in a real browser:
@@ -8,21 +9,27 @@ import { expect, test, type Page } from '@playwright/test';
  */
 
 const API_URL = process.env.E2E_API_URL ?? 'http://localhost:4000';
-const PASSWORD = 'sup3rsecret!';
 
-function unique(): string {
-  return `${Date.now()}${Math.floor(Math.random() * 1000)}`;
-}
+// Every test user is removed afterwards; the auth.users cascade takes their
+// business and all of its data with them.
+test.afterAll(async () => {
+  await cleanupUsers();
+});
 
+/**
+ * Provisions a confirmed Supabase user, then signs in through the real login
+ * form. Signing up in the UI correctly stops at "confirm your email", which
+ * is covered by its own test rather than worked around here.
+ */
 async function register(page: Page): Promise<string> {
-  const email = `e2e.${unique()}@example.com`;
-  await page.goto('/signup');
-  await page.getByLabel('Your name').fill('E2E Owner');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel('Password').fill(PASSWORD);
-  await page.getByRole('button', { name: 'Create account' }).click();
-  await expect(page).toHaveURL(/\/onboarding/);
-  return email;
+  const user = await createConfirmedUser();
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(user.email);
+  await page.getByLabel('Password').fill(user.password);
+  await page.getByRole('button', { name: 'Log in' }).click();
+  await expect(page).toHaveURL(/\/(dashboard|onboarding)/);
+  await page.goto('/onboarding');
+  return user.email;
 }
 
 async function createBusiness(page: Page, name: string): Promise<void> {
@@ -170,6 +177,41 @@ test.describe('Dailylist MVP workflow', () => {
     // The session is really gone, not just the redirect.
     await page.goto('/dashboard');
     await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('signing up asks the new owner to confirm their email', async ({ page }) => {
+    // Supabase's built-in email service allows only a handful of sends per
+    // hour. That is an environment limit, not a product failure, so the test
+    // reports it as skipped rather than red.
+    let rateLimited = false;
+    page.on('response', (r) => {
+      if (r.url().includes('/auth/v1/signup') && r.status() === 429) rateLimited = true;
+    });
+
+    const email = `signup.${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
+    await page.goto('/signup');
+    await page.getByLabel('Your name').fill('New Owner');
+    await page.getByLabel('Email').fill(email);
+    await page.getByLabel('Password').fill('sup3rsecret!');
+    await page.getByRole('button', { name: 'Create account' }).click();
+
+    // Email confirmation is on, so there is no session yet — and we say so
+    // rather than dropping them into an empty app.
+    await page.waitForTimeout(1500);
+    test.skip(
+      rateLimited,
+      'Supabase confirmation-email rate limit reached; needs custom SMTP to test repeatedly.',
+    );
+
+    await expect(page.getByText('Confirm your email')).toBeVisible({ timeout: 15_000 });
+    await expect(page).not.toHaveURL(/\/dashboard/);
+  });
+
+  test('offers Google as an alternative to email and password', async ({ page }) => {
+    await page.goto('/login');
+    await expect(page.getByRole('button', { name: /Continue with Google/i })).toBeVisible();
+    await page.goto('/signup');
+    await expect(page.getByRole('button', { name: /Sign up with Google/i })).toBeVisible();
   });
 
   test('protected pages send signed-out visitors to login', async ({ page }) => {

@@ -3,19 +3,11 @@ import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { authHeader, signInAs, startAuthHarness, stopAuthHarness } from './auth-harness';
 import { PrismaService } from '../src/prisma/prisma.service';
 
-const unique = Date.now();
-const PASSWORD = 'sup3rsecret!';
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (days: number) => new Date(Date.now() - days * DAY);
-
-function sessionCookie(res: request.Response): string {
-  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = cookies?.find((c) => c.startsWith('dailylist_session='));
-  if (!cookie) throw new Error('No session cookie set');
-  return cookie.split(';')[0] as string;
-}
 
 /**
  * Verifies the intelligence engine against REAL database state, so the
@@ -26,9 +18,9 @@ describe('Customer intelligence (e2e)', () => {
   let app: INestApplication;
   let server: Parameters<typeof request>[0];
   let prisma: PrismaService;
-  let cookie: string;
+  let cookie: Record<string, string>;
   let businessId: string;
-  let otherCookie: string;
+  let otherCookie: Record<string, string>;
   let productId: string;
 
   let ids: {
@@ -46,7 +38,7 @@ describe('Customer intelligence (e2e)', () => {
   async function createCustomer(name: string, phone: string): Promise<string> {
     const res = await request(server)
       .post(`/businesses/${businessId}/customers`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name, phone })
       .expect(201);
     return res.body.id;
@@ -100,6 +92,7 @@ describe('Customer intelligence (e2e)', () => {
   }
 
   beforeAll(async () => {
+    process.env.SUPABASE_JWKS_URL = await startAuthHarness();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
@@ -108,21 +101,17 @@ describe('Customer intelligence (e2e)', () => {
     server = app.getHttpServer();
     prisma = app.get(PrismaService);
 
-    const owner = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Intel Owner', email: `intel.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    cookie = sessionCookie(owner);
+    cookie = authHeader(await signInAs());
     const business = await request(server)
       .post('/businesses')
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Intel Shop' })
       .expect(201);
     businessId = business.body.id;
 
     const product = await request(server)
       .post(`/businesses/${businessId}/products`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Glow Serum', price: 18000, reorderIntervalDays: 30 })
       .expect(201);
     productId = product.body.id;
@@ -153,7 +142,7 @@ describe('Customer intelligence (e2e)', () => {
     const hot = await createCustomer('Hot Ngozi', '08010000006');
     const lead = await request(server)
       .post(`/businesses/${businessId}/leads`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ customerId: hot, productId })
       .expect(201);
     await prisma.lead.update({
@@ -166,7 +155,7 @@ describe('Customer intelligence (e2e)', () => {
     await seedPurchase(optedOut, 60000, 40000, daysAgo(50));
     await request(server)
       .post(`/businesses/${businessId}/customers/${optedOut}/communication-preference`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ channel: 'WHATSAPP', optedIn: false })
       .expect(200);
 
@@ -184,21 +173,18 @@ describe('Customer intelligence (e2e)', () => {
 
     ids = { reorder, debtor, today, vip, empty, hot, optedOut, recentlyContacted, lost };
 
-    const other = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Other', email: `other.intel.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    otherCookie = sessionCookie(other);
+    otherCookie = authHeader(await signInAs());
   });
 
   afterAll(async () => {
     await app.close();
+    await stopAuthHarness();
   });
 
   const intel = (customerId: string) =>
     request(server)
       .get(`/businesses/${businessId}/customers/${customerId}/intelligence`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .expect(200);
 
   describe('segment classification against real data', () => {
@@ -276,7 +262,7 @@ describe('Customer intelligence (e2e)', () => {
     it('opting back in restores eligibility', async () => {
       await request(server)
         .post(`/businesses/${businessId}/customers/${ids.optedOut}/communication-preference`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ channel: 'WHATSAPP', optedIn: true })
         .expect(200);
       const res = await intel(ids.optedOut);
@@ -285,7 +271,7 @@ describe('Customer intelligence (e2e)', () => {
       // Restore the opt-out for the remaining assertions.
       await request(server)
         .post(`/businesses/${businessId}/customers/${ids.optedOut}/communication-preference`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ channel: 'WHATSAPP', optedIn: false })
         .expect(200);
     });
@@ -302,7 +288,7 @@ describe('Customer intelligence (e2e)', () => {
     it('returns defaults and applies updates to classification', async () => {
       const defaults = await request(server)
         .get(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(defaults.body.vipLifetimeSpend).toBe(100000);
       expect(defaults.body.minContactIntervalDays).toBe(7);
@@ -310,7 +296,7 @@ describe('Customer intelligence (e2e)', () => {
       // Raise the VIP bar above this customer's spend.
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ vipLifetimeSpend: 500000 })
         .expect(200);
       const stricter = await intel(ids.vip);
@@ -320,7 +306,7 @@ describe('Customer intelligence (e2e)', () => {
 
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ vipLifetimeSpend: 100000 })
         .expect(200);
       const restored = await intel(ids.vip);
@@ -330,7 +316,7 @@ describe('Customer intelligence (e2e)', () => {
     it('shortening the contact interval un-suppresses a fatigued customer', async () => {
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ minContactIntervalDays: 0 })
         .expect(200);
       const res = await intel(ids.recentlyContacted);
@@ -338,7 +324,7 @@ describe('Customer intelligence (e2e)', () => {
 
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ minContactIntervalDays: 7 })
         .expect(200);
     });
@@ -346,7 +332,7 @@ describe('Customer intelligence (e2e)', () => {
     it('rejects out-of-range settings', async () => {
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ vipLifetimeSpend: -100 })
         .expect(400);
     });
@@ -356,7 +342,7 @@ describe('Customer intelligence (e2e)', () => {
     it('reports counts, separating eligible from suppressed', async () => {
       const res = await request(server)
         .get(`/businesses/${businessId}/intelligence/segments`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(res.body.totalCustomers).toBeGreaterThanOrEqual(9);
       expect(res.body.counts.REORDER_DUE).toBeGreaterThanOrEqual(2);
@@ -369,7 +355,7 @@ describe('Customer intelligence (e2e)', () => {
     it('lists customers in a segment, excluding suppressed ones by default', async () => {
       const eligible = await request(server)
         .get(`/businesses/${businessId}/intelligence/customers?segment=REORDER_DUE`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       const eligibleIds = eligible.body.items.map((c: { customerId: string }) => c.customerId);
       expect(eligibleIds).toContain(ids.reorder);
@@ -379,7 +365,7 @@ describe('Customer intelligence (e2e)', () => {
         .get(
           `/businesses/${businessId}/intelligence/customers?segment=REORDER_DUE&includeSuppressed=true`,
         )
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(all.body.items.map((c: { customerId: string }) => c.customerId)).toContain(
         ids.recentlyContacted,
@@ -391,11 +377,11 @@ describe('Customer intelligence (e2e)', () => {
     it('blocks another business from reading intelligence (404)', async () => {
       await request(server)
         .get(`/businesses/${businessId}/intelligence/segments`)
-        .set('Cookie', otherCookie)
+        .set(otherCookie)
         .expect(404);
       await request(server)
         .get(`/businesses/${businessId}/customers/${ids.reorder}/intelligence`)
-        .set('Cookie', otherCookie)
+        .set(otherCookie)
         .expect(404);
     });
   });

@@ -3,26 +3,18 @@ import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { authHeader, signInAs, startAuthHarness, stopAuthHarness } from './auth-harness';
 import { PrismaService } from '../src/prisma/prisma.service';
 
-const unique = Date.now();
-const PASSWORD = 'sup3rsecret!';
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (days: number) => new Date(Date.now() - days * DAY);
-
-function sessionCookie(res: request.Response): string {
-  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = cookies?.find((c) => c.startsWith('dailylist_session='));
-  if (!cookie) throw new Error('No session cookie set');
-  return cookie.split(';')[0] as string;
-}
 
 describe('Daily recommendation engine (e2e)', () => {
   let app: INestApplication;
   let server: Parameters<typeof request>[0];
   let prisma: PrismaService;
-  let cookie: string;
-  let otherCookie: string;
+  let cookie: Record<string, string>;
+  let otherCookie: Record<string, string>;
   let businessId: string;
   let productId: string;
 
@@ -40,7 +32,7 @@ describe('Daily recommendation engine (e2e)', () => {
   async function createCustomer(name: string, phone: string): Promise<string> {
     const res = await request(server)
       .post(`/businesses/${businessId}/customers`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name, phone })
       .expect(201);
     return res.body.id;
@@ -92,6 +84,7 @@ describe('Daily recommendation engine (e2e)', () => {
   }
 
   beforeAll(async () => {
+    process.env.SUPABASE_JWKS_URL = await startAuthHarness();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
@@ -100,21 +93,17 @@ describe('Daily recommendation engine (e2e)', () => {
     server = app.getHttpServer();
     prisma = app.get(PrismaService);
 
-    const owner = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Rec Owner', email: `rec.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    cookie = sessionCookie(owner);
+    cookie = authHeader(await signInAs());
     const business = await request(server)
       .post('/businesses')
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Rec Shop' })
       .expect(201);
     businessId = business.body.id;
 
     const product = await request(server)
       .post(`/businesses/${businessId}/products`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Glow Serum', price: 18000, reorderIntervalDays: 30 })
       .expect(201);
     productId = product.body.id;
@@ -123,7 +112,7 @@ describe('Daily recommendation engine (e2e)', () => {
     const hot = await createCustomer('Hot Ada', '08020000001');
     const lead = await request(server)
       .post(`/businesses/${businessId}/leads`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ customerId: hot, productId })
       .expect(201);
     await prisma.lead.update({ where: { id: lead.body.id }, data: { lastActivityAt: daysAgo(2) } });
@@ -147,7 +136,7 @@ describe('Daily recommendation engine (e2e)', () => {
     await seedPurchase(optedOut, 80000, 20000, daysAgo(30));
     await request(server)
       .post(`/businesses/${businessId}/customers/${optedOut}/communication-preference`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ channel: 'WHATSAPP', optedIn: false })
       .expect(200);
 
@@ -168,20 +157,16 @@ describe('Daily recommendation engine (e2e)', () => {
 
     ids = { hot, debtor, reorder, lost, optedOut, fatigued, justBought, quiet };
 
-    const other = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Other', email: `other.rec.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    otherCookie = sessionCookie(other);
+    otherCookie = authHeader(await signInAs());
   });
 
   afterAll(async () => {
     await app.close();
+    await stopAuthHarness();
   });
 
   const base = () => `/businesses/${businessId}/recommendations`;
-  const listAll = () =>
-    request(server).get(`${base()}?pageSize=100`).set('Cookie', cookie).expect(200);
+  const listAll = () => request(server).get(`${base()}?pageSize=100`).set(cookie).expect(200);
 
   describe('candidate generation and persistence', () => {
     it("generates today's list on first request and persists snapshots", async () => {
@@ -257,8 +242,8 @@ describe('Daily recommendation engine (e2e)', () => {
   describe('duplicate prevention and idempotency', () => {
     it('re-generating does not duplicate cards', async () => {
       const before = await prisma.dailyRecommendation.count({ where: { businessId } });
-      await request(server).post(`${base()}/generate`).set('Cookie', cookie).expect(200);
-      await request(server).post(`${base()}/generate`).set('Cookie', cookie).expect(200);
+      await request(server).post(`${base()}/generate`).set(cookie).expect(200);
+      await request(server).post(`${base()}/generate`).set(cookie).expect(200);
       const after = await prisma.dailyRecommendation.count({ where: { businessId } });
       expect(after).toBe(before);
     });
@@ -284,7 +269,7 @@ describe('Daily recommendation engine (e2e)', () => {
 
   describe('summary', () => {
     it('reports totals and per-category counts', async () => {
-      const res = await request(server).get(`${base()}/summary`).set('Cookie', cookie).expect(200);
+      const res = await request(server).get(`${base()}/summary`).set(cookie).expect(200);
       expect(res.body.total).toBeGreaterThan(0);
       expect(res.body.pending).toBe(res.body.total);
       expect(res.body.done).toBe(0);
@@ -303,7 +288,7 @@ describe('Daily recommendation engine (e2e)', () => {
 
       const updated = await request(server)
         .patch(`${base()}/${card.id}/status`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ status: 'COMPLETED' })
         .expect(200);
       expect(updated.body.status).toBe('COMPLETED');
@@ -315,13 +300,13 @@ describe('Daily recommendation engine (e2e)', () => {
 
       const timeline = await request(server)
         .get(`/businesses/${businessId}/customers/${ids.reorder}/timeline`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(timeline.body.items.map((e: { type: string }) => e.type)).toContain('FOLLOW_UP');
     });
 
     it('a completed customer drops off the next generation (fatigue applies)', async () => {
-      await request(server).post(`${base()}/generate`).set('Cookie', cookie).expect(200);
+      await request(server).post(`${base()}/generate`).set(cookie).expect(200);
       const stillThere = await prisma.dailyRecommendation.findFirst({
         where: { businessId, customerId: ids.reorder },
       });
@@ -332,7 +317,7 @@ describe('Daily recommendation engine (e2e)', () => {
       const tomorrow = new Date(Date.now() + DAY);
       const intel = await request(server)
         .get(`/businesses/${businessId}/customers/${ids.reorder}/intelligence`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(intel.body.suppressionCodes).toContain('RECENTLY_CONTACTED');
       expect(tomorrow.getTime()).toBeGreaterThan(Date.now());
@@ -346,11 +331,11 @@ describe('Daily recommendation engine (e2e)', () => {
       );
       await request(server)
         .patch(`${base()}/${skipTarget.id}/status`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ status: 'SKIPPED' })
         .expect(200);
 
-      await request(server).post(`${base()}/generate`).set('Cookie', cookie).expect(200);
+      await request(server).post(`${base()}/generate`).set(cookie).expect(200);
 
       const after = await prisma.dailyRecommendation.findFirst({
         where: { businessId, customerId: ids.lost },
@@ -364,7 +349,7 @@ describe('Daily recommendation engine (e2e)', () => {
 
       const timeline = await request(server)
         .get(`/businesses/${businessId}/customers/${ids.lost}/timeline`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(timeline.body.items.map((e: { type: string }) => e.type)).toContain(
         'FOLLOW_UP_SKIPPED',
@@ -376,7 +361,7 @@ describe('Daily recommendation engine (e2e)', () => {
       const card = list.body.items[0];
       await request(server)
         .patch(`${base()}/${card.id}/status`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ status: 'NOT_A_STATUS' })
         .expect(400);
     });
@@ -386,27 +371,24 @@ describe('Daily recommendation engine (e2e)', () => {
     it('filters by category and status', async () => {
       const hotOnly = await request(server)
         .get(`${base()}?category=HOT_LEAD`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       for (const item of hotOnly.body.items) expect(item.category).toBe('HOT_LEAD');
 
-      const pending = await request(server)
-        .get(`${base()}?status=PENDING`)
-        .set('Cookie', cookie)
-        .expect(200);
+      const pending = await request(server).get(`${base()}?status=PENDING`).set(cookie).expect(200);
       for (const item of pending.body.items) expect(item.status).toBe('PENDING');
     });
 
     it('honours the configured daily list size', async () => {
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ dailyListSize: 1 })
         .expect(200);
 
       // Clear today's list so the smaller limit applies from scratch.
       await prisma.dailyRecommendation.deleteMany({ where: { businessId } });
-      await request(server).post(`${base()}/generate`).set('Cookie', cookie).expect(200);
+      await request(server).post(`${base()}/generate`).set(cookie).expect(200);
 
       const res = await listAll();
       expect(res.body.total).toBe(1);
@@ -415,18 +397,18 @@ describe('Daily recommendation engine (e2e)', () => {
 
       await request(server)
         .patch(`/businesses/${businessId}/settings`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ dailyListSize: 20 })
         .expect(200);
       await prisma.dailyRecommendation.deleteMany({ where: { businessId } });
-      await request(server).post(`${base()}/generate`).set('Cookie', cookie).expect(200);
+      await request(server).post(`${base()}/generate`).set(cookie).expect(200);
     });
   });
 
   describe('tenant isolation', () => {
     it('blocks another business from reading or generating (404)', async () => {
-      await request(server).get(base()).set('Cookie', otherCookie).expect(404);
-      await request(server).post(`${base()}/generate`).set('Cookie', otherCookie).expect(404);
+      await request(server).get(base()).set(otherCookie).expect(404);
+      await request(server).post(`${base()}/generate`).set(otherCookie).expect(404);
     });
   });
 });

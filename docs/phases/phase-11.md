@@ -88,7 +88,7 @@ segment insight lives on the customer profile, where it is actually useful).
 | `npm run typecheck` / `lint` / `format:check` — 17 tasks | ✅ pass |
 | Unit tests — 236                                         | ✅ pass |
 | **API integration tests — 138, unmodified**              | ✅ pass |
-| Playwright E2E — 10, mobile (Pixel 7) + desktop           | ✅ pass |
+| Playwright E2E — 10, mobile (Pixel 7) + desktop          | ✅ pass |
 | Visual review of 11 screens on both viewports            | ✅ done |
 
 Existing functionality confirmed still working by the E2E suite: signup, login,

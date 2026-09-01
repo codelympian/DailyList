@@ -3,100 +3,95 @@ import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { PrismaService } from '../src/prisma/prisma.service';
+import { authHeader, signInAs, startAuthHarness, stopAuthHarness } from './auth-harness';
 
-const unique = Date.now();
-const adaEmail = `ada.${unique}@example.com`;
-const bobEmail = `bob.${unique}@example.com`;
-const PASSWORD = 'sup3rsecret!';
-
-function sessionCookie(res: request.Response): string {
-  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = cookies?.find((c) => c.startsWith('dailylist_session='));
-  if (!cookie) throw new Error('No session cookie set');
-  return cookie.split(';')[0] as string;
-}
-
+/**
+ * Authentication is Supabase's; this suite covers our half of the contract —
+ * that a valid token is accepted, an invalid one never is, the profile is
+ * provisioned on first sight, and businesses stay isolated per user.
+ *
+ * There are no register/login/logout endpoints to test: the browser talks to
+ * Supabase directly, so credentials never reach this API.
+ */
 describe('Auth + businesses (e2e)', () => {
   let app: INestApplication;
   let server: Parameters<typeof request>[0];
+  let prisma: PrismaService;
 
   beforeAll(async () => {
+    process.env.SUPABASE_JWKS_URL = await startAuthHarness();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
     app.enableShutdownHooks();
     await app.init();
     server = app.getHttpServer();
+    prisma = app.get(PrismaService);
   });
 
   afterAll(async () => {
     await app.close();
+    await stopAuthHarness();
   });
 
-  describe('registration', () => {
-    it('registers a user, sets an httpOnly session cookie, and /me works', async () => {
-      const res = await request(server)
-        .post('/auth/register')
-        .send({ name: 'Ada Okafor', email: adaEmail, password: PASSWORD })
-        .expect(201);
+  describe('token verification', () => {
+    it('accepts a validly signed token and provisions the profile on first use', async () => {
+      const ada = await signInAs({ name: 'Ada Okafor' });
 
-      expect(res.body.user.email).toBe(adaEmail);
-      expect(res.body.user).not.toHaveProperty('passwordHash');
-      const rawCookie = (res.headers['set-cookie'] as unknown as string[])[0] as string;
-      expect(rawCookie).toContain('HttpOnly');
+      // No profile row exists until the first authenticated request.
+      expect(await prisma.user.findUnique({ where: { id: ada.id } })).toBeNull();
 
-      const me = await request(server)
+      const res = await request(server).get('/auth/me').set(authHeader(ada)).expect(200);
+      expect(res.body.user.id).toBe(ada.id);
+      expect(res.body.user.email).toBe(ada.email);
+      expect(res.body.user.name).toBe('Ada Okafor');
+      expect(res.body.businesses).toEqual([]);
+
+      const stored = await prisma.user.findUnique({ where: { id: ada.id } });
+      expect(stored).not.toBeNull();
+      // Credentials live in Supabase; nothing password-shaped is stored here.
+      expect(stored).not.toHaveProperty('passwordHash');
+    });
+
+    it('provisions once, not on every request', async () => {
+      const bola = await signInAs();
+      await request(server).get('/auth/me').set(authHeader(bola)).expect(200);
+      await request(server).get('/auth/me').set(authHeader(bola)).expect(200);
+      const count = await prisma.user.count({ where: { id: bola.id } });
+      expect(count).toBe(1);
+    });
+
+    it.each([
+      ['no header', {}],
+      ['a malformed header', { Authorization: 'Bearer not-a-token' }],
+      ['a token signed by someone else', { Authorization: `Bearer ${'ey.' + 'x'.repeat(40)}` }],
+    ])('rejects %s with 401', async (_label, headers) => {
+      await request(server).get('/auth/me').set(headers).expect(401);
+    });
+
+    it('rejects an expired token', async () => {
+      // An hour in the past; jose only parses durations forward.
+      const stale = await signInAs({ expiresIn: Math.floor(Date.now() / 1000) - 3600 });
+      await request(server).get('/auth/me').set(authHeader(stale)).expect(401);
+    });
+
+    it('rejects a token minted for a different audience', async () => {
+      const wrong = await signInAs({ audience: 'some-other-service' });
+      await request(server).get('/auth/me').set(authHeader(wrong)).expect(401);
+    });
+
+    it('keeps the stored email in step when it changes in Supabase', async () => {
+      const id = (await signInAs()).id;
+      await request(server)
         .get('/auth/me')
-        .set('Cookie', sessionCookie(res))
+        .set(authHeader(await signInAs({ id, email: 'first@example.com' })))
         .expect(200);
-      expect(me.body.user.email).toBe(adaEmail);
-      expect(me.body.businesses).toEqual([]);
-    });
-
-    it('rejects a duplicate email with 409', async () => {
-      await request(server)
-        .post('/auth/register')
-        .send({ name: 'Ada Again', email: adaEmail, password: PASSWORD })
-        .expect(409);
-    });
-
-    it('rejects invalid input with 400 and field details', async () => {
       const res = await request(server)
-        .post('/auth/register')
-        .send({ name: 'A', email: 'not-an-email', password: 'short' })
-        .expect(400);
-      const paths = res.body.details.map((d: { path: string }) => d.path);
-      expect(paths).toEqual(expect.arrayContaining(['name', 'email', 'password']));
-    });
-  });
-
-  describe('login/logout', () => {
-    it('rejects a wrong password with 401', async () => {
-      await request(server)
-        .post('/auth/login')
-        .send({ email: adaEmail, password: 'wrong-password' })
-        .expect(401);
-    });
-
-    it('rejects an unknown email with 401 (same error as wrong password)', async () => {
-      const res = await request(server)
-        .post('/auth/login')
-        .send({ email: `ghost.${unique}@example.com`, password: PASSWORD })
-        .expect(401);
-      expect(res.body.message).toBe('Invalid email or password');
-    });
-
-    it('logs in with correct credentials, then logout invalidates the session', async () => {
-      const login = await request(server)
-        .post('/auth/login')
-        .send({ email: adaEmail, password: PASSWORD })
+        .get('/auth/me')
+        .set(authHeader(await signInAs({ id, email: 'second@example.com' })))
         .expect(200);
-      const cookie = sessionCookie(login);
-
-      await request(server).get('/auth/me').set('Cookie', cookie).expect(200);
-      await request(server).post('/auth/logout').set('Cookie', cookie).expect(200);
-      // The server-side session is revoked — the old cookie no longer works.
-      await request(server).get('/auth/me').set('Cookie', cookie).expect(401);
+      expect(res.body.user.email).toBe('second@example.com');
     });
   });
 
@@ -104,70 +99,71 @@ describe('Auth + businesses (e2e)', () => {
     it.each(['/auth/me', '/businesses'])('rejects unauthenticated GET %s with 401', async (url) => {
       await request(server).get(url).expect(401);
     });
+  });
 
-    it('rejects a forged session cookie', async () => {
-      await request(server)
-        .get('/auth/me')
-        .set('Cookie', 'dailylist_session=forged-token-value')
-        .expect(401);
+  describe('profile', () => {
+    it('lets the owner correct the name inferred from their provider', async () => {
+      const user = await signInAs({ name: 'ada' });
+      await request(server).get('/auth/me').set(authHeader(user)).expect(200);
+
+      const res = await request(server)
+        .patch('/auth/me')
+        .set(authHeader(user))
+        .send({ name: 'Ada Okafor' })
+        .expect(200);
+      expect(res.body.user.name).toBe('Ada Okafor');
+    });
+
+    it('rejects an empty name', async () => {
+      const user = await signInAs();
+      await request(server).patch('/auth/me').set(authHeader(user)).send({ name: 'A' }).expect(400);
     });
   });
 
   describe('businesses + tenant isolation', () => {
-    let adaCookie: string;
-    let bobCookie: string;
+    let ada: Awaited<ReturnType<typeof signInAs>>;
+    let bob: Awaited<ReturnType<typeof signInAs>>;
     let adaBusinessId: string;
 
     beforeAll(async () => {
-      const adaLogin = await request(server)
-        .post('/auth/login')
-        .send({ email: adaEmail, password: PASSWORD })
-        .expect(200);
-      adaCookie = sessionCookie(adaLogin);
-
-      const bobRegister = await request(server)
-        .post('/auth/register')
-        .send({ name: 'Bob Eze', email: bobEmail, password: PASSWORD })
-        .expect(201);
-      bobCookie = sessionCookie(bobRegister);
+      ada = await signInAs({ name: 'Ada Owner' });
+      bob = await signInAs({ name: 'Bob Eze' });
+      await request(server).get('/auth/me').set(authHeader(ada)).expect(200);
+      await request(server).get('/auth/me').set(authHeader(bob)).expect(200);
     });
 
     it('creates a business with the creator as OWNER', async () => {
       const res = await request(server)
         .post('/businesses')
-        .set('Cookie', adaCookie)
+        .set(authHeader(ada))
         .send({ name: "Ada's Glow", industry: 'Beauty' })
         .expect(201);
       expect(res.body.role).toBe('OWNER');
-      expect(res.body.name).toBe("Ada's Glow");
       expect(res.body.currency).toBe('NGN');
       adaBusinessId = res.body.id;
     });
 
     it('lists the business for its owner and in /auth/me', async () => {
-      const list = await request(server).get('/businesses').set('Cookie', adaCookie).expect(200);
+      const list = await request(server).get('/businesses').set(authHeader(ada)).expect(200);
       expect(list.body.map((b: { id: string }) => b.id)).toContain(adaBusinessId);
 
-      const me = await request(server).get('/auth/me').set('Cookie', adaCookie).expect(200);
+      const me = await request(server).get('/auth/me').set(authHeader(ada)).expect(200);
       expect(me.body.businesses.map((b: { id: string }) => b.id)).toContain(adaBusinessId);
     });
 
     it("does NOT let another user read Ada's business (404, existence hidden)", async () => {
-      await request(server)
-        .get(`/businesses/${adaBusinessId}`)
-        .set('Cookie', bobCookie)
-        .expect(404);
+      await request(server).get(`/businesses/${adaBusinessId}`).set(authHeader(bob)).expect(404);
     });
 
     it("does NOT include Ada's business in Bob's list", async () => {
-      const list = await request(server).get('/businesses').set('Cookie', bobCookie).expect(200);
+      const list = await request(server).get('/businesses').set(authHeader(bob)).expect(200);
       expect(list.body.map((b: { id: string }) => b.id)).not.toContain(adaBusinessId);
     });
 
     it('lets the owner read their own business by id', async () => {
       const res = await request(server)
         .get(`/businesses/${adaBusinessId}`)
-        .set('Cookie', adaCookie)
+        .set(authHeader(ada))
         .expect(200);
       expect(res.body.id).toBe(adaBusinessId);
       expect(res.body.role).toBe('OWNER');

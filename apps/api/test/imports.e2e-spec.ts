@@ -4,16 +4,7 @@ import cookieParser from 'cookie-parser';
 import ExcelJS from 'exceljs';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
-
-const unique = Date.now();
-const PASSWORD = 'sup3rsecret!';
-
-function sessionCookie(res: request.Response): string {
-  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = cookies?.find((c) => c.startsWith('dailylist_session='));
-  if (!cookie) throw new Error('No session cookie set');
-  return cookie.split(';')[0] as string;
-}
+import { authHeader, signInAs, startAuthHarness, stopAuthHarness } from './auth-harness';
 
 const CSV = [
   'Customer Name,Phone Number,Product Purchased,Amount,Date Bought,Amount Due',
@@ -29,12 +20,13 @@ const CSV = [
 describe('CSV/XLSX import (e2e)', () => {
   let app: INestApplication;
   let server: Parameters<typeof request>[0];
-  let cookie: string;
+  let cookie: Record<string, string>;
   let businessId: string;
-  let otherCookie: string;
+  let otherCookie: Record<string, string>;
   let existingCustomerId: string;
 
   beforeAll(async () => {
+    process.env.SUPABASE_JWKS_URL = await startAuthHarness();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
@@ -42,14 +34,10 @@ describe('CSV/XLSX import (e2e)', () => {
     await app.init();
     server = app.getHttpServer();
 
-    const owner = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Import Owner', email: `import.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    cookie = sessionCookie(owner);
+    cookie = authHeader(await signInAs());
     const business = await request(server)
       .post('/businesses')
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Import Shop' })
       .expect(201);
     businessId = business.body.id;
@@ -57,20 +45,17 @@ describe('CSV/XLSX import (e2e)', () => {
     // Pre-existing customer that the CSV will collide with.
     const existing = await request(server)
       .post(`/businesses/${businessId}/customers`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Already Here', phone: '08012340000' })
       .expect(201);
     existingCustomerId = existing.body.id;
 
-    const other = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Other', email: `other.import.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    otherCookie = sessionCookie(other);
+    otherCookie = authHeader(await signInAs());
   });
 
   afterAll(async () => {
     await app.close();
+    await stopAuthHarness();
   });
 
   const base = () => `/businesses/${businessId}/imports`;
@@ -80,7 +65,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('uploads a CSV, detects columns, and suggests the mapping', async () => {
       const res = await request(server)
         .post(base())
-        .set('Cookie', cookie)
+        .set(cookie)
         .attach('file', Buffer.from(CSV, 'utf8'), 'customers.csv')
         .expect(201);
 
@@ -108,7 +93,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('rejects unsupported file types', async () => {
       await request(server)
         .post(base())
-        .set('Cookie', cookie)
+        .set(cookie)
         .attach('file', Buffer.from('hello', 'utf8'), 'notes.txt')
         .expect(400);
     });
@@ -116,7 +101,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('rejects a file with no data rows', async () => {
       await request(server)
         .post(base())
-        .set('Cookie', cookie)
+        .set(cookie)
         .attach('file', Buffer.from('Name,Phone\r\n', 'utf8'), 'empty.csv')
         .expect(400);
     });
@@ -124,10 +109,10 @@ describe('CSV/XLSX import (e2e)', () => {
 
   describe('mapping + validation preview', () => {
     it('applies the mapping and produces preview counts', async () => {
-      const job = await request(server).get(`${base()}/${jobId}`).set('Cookie', cookie);
+      const job = await request(server).get(`${base()}/${jobId}`).set(cookie);
       const res = await request(server)
         .post(`${base()}/${jobId}/mapping`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ mapping: job.body.suggestedMapping })
         .expect(200);
 
@@ -140,7 +125,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('rejects a mapping without a name column', async () => {
       await request(server)
         .post(`${base()}/${jobId}/mapping`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ mapping: { phone: 'Phone Number' } })
         .expect(400);
     });
@@ -148,7 +133,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('rejects a mapping to a column not in the file', async () => {
       await request(server)
         .post(`${base()}/${jobId}/mapping`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ mapping: { name: 'Nonexistent Column' } })
         .expect(400);
     });
@@ -156,7 +141,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('lists invalid rows with field-level errors', async () => {
       const res = await request(server)
         .get(`${base()}/${jobId}/rows?status=INVALID`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(res.body.total).toBe(2);
       const phoneError = res.body.items.find((r: { rowNumber: number }) => r.rowNumber === 3);
@@ -168,7 +153,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('marks the existing-customer collision with the customer id', async () => {
       const res = await request(server)
         .get(`${base()}/${jobId}/rows?status=DUPLICATE`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       const existingDup = res.body.items.find((r: { rowNumber: number }) => r.rowNumber === 5);
       expect(existingDup.duplicateOfCustomerId).toBe(existingCustomerId);
@@ -179,10 +164,7 @@ describe('CSV/XLSX import (e2e)', () => {
 
   describe('confirm + execution', () => {
     it('imports valid rows, skips duplicates, never touches invalid rows', async () => {
-      const res = await request(server)
-        .post(`${base()}/${jobId}/confirm`)
-        .set('Cookie', cookie)
-        .expect(200);
+      const res = await request(server).post(`${base()}/${jobId}/confirm`).set(cookie).expect(200);
       expect(res.body.status).toBe('COMPLETED');
       expect(res.body.importedRows).toBe(3);
       expect(res.body.skippedRows).toBe(2);
@@ -192,7 +174,7 @@ describe('CSV/XLSX import (e2e)', () => {
     it('created the customer with normalized phone, transaction, and debt', async () => {
       const search = await request(server)
         .get(`/businesses/${businessId}/customers?search=Ada Import`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(search.body.items).toHaveLength(1);
       const ada = search.body.items[0];
@@ -200,7 +182,7 @@ describe('CSV/XLSX import (e2e)', () => {
 
       const detail = await request(server)
         .get(`/businesses/${businessId}/customers/${ada.id}`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(detail.body.totalSpend).toBe('18000');
       expect(detail.body.purchaseCount).toBe(1);
@@ -209,7 +191,7 @@ describe('CSV/XLSX import (e2e)', () => {
 
       const txns = await request(server)
         .get(`/businesses/${businessId}/transactions?customerId=${ada.id}`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(txns.body.items).toHaveLength(1);
       expect(txns.body.items[0].status).toBe('PARTIALLY_PAID');
@@ -217,7 +199,7 @@ describe('CSV/XLSX import (e2e)', () => {
 
       const timeline = await request(server)
         .get(`/businesses/${businessId}/customers/${ada.id}/timeline`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       const types = timeline.body.items.map((e: { type: string }) => e.type);
       expect(types).toContain('PURCHASE');
@@ -227,20 +209,20 @@ describe('CSV/XLSX import (e2e)', () => {
     it('did NOT duplicate the pre-existing customer', async () => {
       const res = await request(server)
         .get(`/businesses/${businessId}/customers?search=08012340000`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(res.body.items).toHaveLength(1);
       expect(res.body.items[0].name).toBe('Already Here');
     });
 
     it('refuses to run the same import twice', async () => {
-      await request(server).post(`${base()}/${jobId}/confirm`).set('Cookie', cookie).expect(400);
+      await request(server).post(`${base()}/${jobId}/confirm`).set(cookie).expect(400);
     });
 
     it('serves a CSV error report of problem rows', async () => {
       const res = await request(server)
         .get(`${base()}/${jobId}/error-report`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(res.headers['content-type']).toContain('text/csv');
       expect(res.text).toContain('Row,Status,Problems');
@@ -249,7 +231,7 @@ describe('CSV/XLSX import (e2e)', () => {
     });
 
     it('shows the job in import history', async () => {
-      const res = await request(server).get(base()).set('Cookie', cookie).expect(200);
+      const res = await request(server).get(base()).set(cookie).expect(200);
       expect(res.body.items.map((j: { id: string }) => j.id)).toContain(jobId);
     });
   });
@@ -264,7 +246,7 @@ describe('CSV/XLSX import (e2e)', () => {
 
       const upload = await request(server)
         .post(base())
-        .set('Cookie', cookie)
+        .set(cookie)
         .attach('file', buffer, 'customers.xlsx')
         .expect(201);
       expect(upload.body.fileType).toBe('XLSX');
@@ -273,20 +255,20 @@ describe('CSV/XLSX import (e2e)', () => {
 
       const mapped = await request(server)
         .post(`${base()}/${upload.body.id}/mapping`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ mapping: upload.body.suggestedMapping })
         .expect(200);
       expect(mapped.body.validRows).toBe(1);
 
       const done = await request(server)
         .post(`${base()}/${upload.body.id}/confirm`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(done.body.importedRows).toBe(1);
 
       const search = await request(server)
         .get(`/businesses/${businessId}/customers?search=Excel Person`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(search.body.items[0].phone).toBe('+2348075556666');
     });
@@ -294,7 +276,7 @@ describe('CSV/XLSX import (e2e)', () => {
 
   describe('tenant isolation', () => {
     it('blocks other users from seeing the import (404)', async () => {
-      await request(server).get(`${base()}/${jobId}`).set('Cookie', otherCookie).expect(404);
+      await request(server).get(`${base()}/${jobId}`).set(otherCookie).expect(404);
     });
   });
 });

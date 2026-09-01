@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ClipboardList } from 'lucide-react';
 import { loginSchema, type LoginInput } from '@dailylist/validation';
 import { Button } from '@/components/ui/button';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { ProductPreview } from '@/components/product-preview';
+import { GoogleButton } from '@/components/google-button';
 import { useLogin } from '@/hooks/use-auth';
 
 /**
@@ -17,7 +20,18 @@ import { useLogin } from '@/hooks/use-auth';
  * one that sells; this one just gets them back in.
  */
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <Login />
+    </Suspense>
+  );
+}
+
+function Login() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // The OAuth callback reports provider failures back here.
+  const callbackError = searchParams.get('error');
   const login = useLogin();
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -61,7 +75,26 @@ export default function LoginPage() {
             Enter your details to see today&apos;s sales list.
           </p>
 
-          <form onSubmit={onSubmit} noValidate className="mt-7">
+          {callbackError && (
+            <p
+              role="alert"
+              className="mt-4 rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+            >
+              {callbackError}
+            </p>
+          )}
+
+          <div className="mt-7">
+            <GoogleButton label="Continue with Google" />
+          </div>
+
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <form onSubmit={onSubmit} noValidate>
             <FieldGroup>
               <Field data-invalid={!!form.formState.errors.email}>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
@@ -77,7 +110,15 @@ export default function LoginPage() {
               </Field>
 
               <Field data-invalid={!!form.formState.errors.password}>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <div className="flex items-baseline justify-between">
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <Input
                   id="password"
                   type="password"
@@ -90,7 +131,7 @@ export default function LoginPage() {
 
               {login.isError && (
                 <p role="alert" className="text-sm text-destructive">
-                  {login.error.status === 401
+                  {login.error.status === 400 || login.error.status === 401
                     ? 'That email and password do not match. Try again.'
                     : login.error.status === 429
                       ? 'Too many attempts. Wait a minute and try again.'

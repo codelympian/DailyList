@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, ClipboardList } from 'lucide-react';
+import { Check, ClipboardList, MailCheck } from 'lucide-react';
 import { registerSchema, type RegisterInput } from '@dailylist/validation';
 import { Button } from '@/components/ui/button';
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { GoogleButton } from '@/components/google-button';
 import { OnboardingProgress } from '@/components/onboarding-progress';
 import { useRegister } from '@/hooks/use-auth';
 
@@ -28,8 +29,34 @@ export default function SignupPage() {
   });
 
   const onSubmit = form.handleSubmit((values) => {
-    registerMutation.mutate(values, { onSuccess: () => router.replace('/onboarding') });
+    registerMutation.mutate(values, {
+      // With email confirmation enabled there is no session yet, so we tell
+      // them to check their inbox instead of sending them into the app.
+      onSuccess: (result) => {
+        if (!result.needsConfirmation) router.replace('/onboarding');
+      },
+    });
   });
+
+  if (registerMutation.data?.needsConfirmation) {
+    return (
+      <main className="flex flex-1 items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-e1 ring-1 ring-border/50">
+          <span className="grid size-10 place-items-center rounded-xl bg-whatsapp/15 text-whatsapp-ink">
+            <MailCheck className="size-5" aria-hidden />
+          </span>
+          <h1 className="mt-4 text-title font-semibold tracking-tight">Confirm your email</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            We sent a confirmation link to your inbox. Open it and you will be signed in and taken
+            straight to setting up your business.
+          </p>
+          <Button variant="outline" className="mt-5 w-full" render={<Link href="/login" />}>
+            Back to log in
+          </Button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="grid flex-1 lg:grid-cols-[minmax(0,26rem)_1fr]">
@@ -52,7 +79,17 @@ export default function SignupPage() {
             Takes about a minute. You can add customers straight after.
           </p>
 
-          <form onSubmit={onSubmit} noValidate className="mt-6">
+          <div className="mt-6">
+            <GoogleButton label="Sign up with Google" />
+          </div>
+
+          <div className="my-5 flex items-center gap-3">
+            <span className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or</span>
+            <span className="h-px flex-1 bg-border" />
+          </div>
+
+          <form onSubmit={onSubmit} noValidate>
             <FieldGroup>
               <Field data-invalid={!!form.formState.errors.name}>
                 <FieldLabel htmlFor="name">Your name</FieldLabel>

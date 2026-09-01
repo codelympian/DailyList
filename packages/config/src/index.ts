@@ -8,6 +8,14 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url().default('redis://localhost:6379'),
   API_PORT: z.coerce.number().int().positive().default(4000),
+
+  // --- Supabase Auth ---
+  // Identity lives in Supabase; the API verifies its JWTs and never holds
+  // credentials. SUPABASE_JWKS_URL is derived from SUPABASE_URL unless
+  // overridden, which the test suite does to verify locally-minted tokens.
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_SECRET_KEY: z.string().min(1),
+  SUPABASE_JWKS_URL: z.string().url().optional(),
   API_CORS_ORIGIN: z.string().default('http://localhost:3000'),
 
   // --- Optional AI message generation (Phase 8) ---

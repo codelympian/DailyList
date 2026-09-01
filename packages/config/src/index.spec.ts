@@ -6,6 +6,10 @@ describe('loadEnv', () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    // Supabase auth config is required; each case sets it unless it is
+    // specifically testing what happens when something is missing.
+    process.env.SUPABASE_URL = 'https://project.supabase.co';
+    process.env.SUPABASE_SECRET_KEY = 'sb_secret_test';
   });
 
   afterAll(() => {

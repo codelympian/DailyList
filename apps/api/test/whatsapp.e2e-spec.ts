@@ -3,31 +3,24 @@ import { Test } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
+import { authHeader, signInAs, startAuthHarness, stopAuthHarness } from './auth-harness';
 import { PrismaService } from '../src/prisma/prisma.service';
 
-const unique = Date.now();
-const PASSWORD = 'sup3rsecret!';
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (days: number) => new Date(Date.now() - days * DAY);
-
-function sessionCookie(res: request.Response): string {
-  const cookies = res.headers['set-cookie'] as unknown as string[] | undefined;
-  const cookie = cookies?.find((c) => c.startsWith('dailylist_session='));
-  if (!cookie) throw new Error('No session cookie set');
-  return cookie.split(';')[0] as string;
-}
 
 describe('WhatsApp quick send (e2e)', () => {
   let app: INestApplication;
   let server: Parameters<typeof request>[0];
   let prisma: PrismaService;
-  let cookie: string;
-  let otherCookie: string;
+  let cookie: Record<string, string>;
+  let otherCookie: Record<string, string>;
   let businessId: string;
   let withPhone: string;
   let withoutPhone: string;
 
   beforeAll(async () => {
+    process.env.SUPABASE_JWKS_URL = await startAuthHarness();
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
@@ -36,28 +29,24 @@ describe('WhatsApp quick send (e2e)', () => {
     server = app.getHttpServer();
     prisma = app.get(PrismaService);
 
-    const owner = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Wa Owner', email: `wa.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    cookie = sessionCookie(owner);
+    cookie = authHeader(await signInAs());
     const business = await request(server)
       .post('/businesses')
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: "Ada's Glow" })
       .expect(201);
     businessId = business.body.id;
 
     const product = await request(server)
       .post(`/businesses/${businessId}/products`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Glow Serum', price: 18000, reorderIntervalDays: 30 })
       .expect(201);
 
     // A customer who is reorder-due, so a recommendation exists for them.
     const customer = await request(server)
       .post(`/businesses/${businessId}/customers`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'Ada Okafor', phone: '0801 234 5678' })
       .expect(201);
     withPhone = customer.body.id;
@@ -93,20 +82,17 @@ describe('WhatsApp quick send (e2e)', () => {
 
     const noPhone = await request(server)
       .post(`/businesses/${businessId}/customers`)
-      .set('Cookie', cookie)
+      .set(cookie)
       .send({ name: 'No Phone Ngozi' })
       .expect(201);
     withoutPhone = noPhone.body.id;
 
-    const other = await request(server)
-      .post('/auth/register')
-      .send({ name: 'Other', email: `other.wa.${unique}@example.com`, password: PASSWORD })
-      .expect(201);
-    otherCookie = sessionCookie(other);
+    otherCookie = authHeader(await signInAs());
   });
 
   afterAll(async () => {
     await app.close();
+    await stopAuthHarness();
   });
 
   const linkFor = (customerId: string, recommendationId?: string) =>
@@ -115,7 +101,7 @@ describe('WhatsApp quick send (e2e)', () => {
         `/businesses/${businessId}/customers/${customerId}/whatsapp-link` +
           (recommendationId ? `?recommendationId=${recommendationId}` : ''),
       )
-      .set('Cookie', cookie);
+      .set(cookie);
 
   describe('link generation', () => {
     it('builds a wa.me link with the normalized number and encoded message', async () => {
@@ -136,11 +122,11 @@ describe('WhatsApp quick send (e2e)', () => {
     it('uses the recommendation message when one is given', async () => {
       await request(server)
         .post(`/businesses/${businessId}/recommendations/generate`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       const list = await request(server)
         .get(`/businesses/${businessId}/recommendations?pageSize=50`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       const card = list.body.items.find((i: { customerId: string }) => i.customerId === withPhone);
       expect(card).toBeDefined();
@@ -160,7 +146,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('blocks another business (404)', async () => {
       await request(server)
         .get(`/businesses/${businessId}/customers/${withPhone}/whatsapp-link`)
-        .set('Cookie', otherCookie)
+        .set(otherCookie)
         .expect(404);
     });
   });
@@ -172,7 +158,7 @@ describe('WhatsApp quick send (e2e)', () => {
     beforeAll(async () => {
       const list = await request(server)
         .get(`/businesses/${businessId}/recommendations?pageSize=50`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       const card = list.body.items.find((i: { customerId: string }) => i.customerId === withPhone);
       recommendationId = card.id;
@@ -182,7 +168,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('records opening WhatsApp and marks the card contacted', async () => {
       const res = await request(server)
         .post(`/businesses/${businessId}/messages`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({
           customerId: withPhone,
           recommendationId,
@@ -212,7 +198,7 @@ describe('WhatsApp quick send (e2e)', () => {
 
       const intelligence = await request(server)
         .get(`/businesses/${businessId}/customers/${withPhone}/intelligence`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
       expect(intelligence.body.suppressionCodes).toContain('RECENTLY_CONTACTED');
       expect(intelligence.body.eligible).toBe(false);
@@ -221,7 +207,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('logs a timeline event that claims only what we know', async () => {
       const timeline = await request(server)
         .get(`/businesses/${businessId}/customers/${withPhone}/timeline?pageSize=50`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
 
       const event = timeline.body.items.find((e: { type: string }) => e.type === 'MESSAGE_SENT');
@@ -237,7 +223,7 @@ describe('WhatsApp quick send (e2e)', () => {
 
       const res = await request(server)
         .post(`/businesses/${businessId}/messages`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ customerId: withPhone, action: 'COPIED', body: messageBody })
         .expect(201);
       expect(res.body.action).toBe('COPIED');
@@ -250,7 +236,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('exposes contact history without any delivery status', async () => {
       const res = await request(server)
         .get(`/businesses/${businessId}/customers/${withPhone}/messages`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .expect(200);
 
       expect(res.body.length).toBeGreaterThanOrEqual(2);
@@ -265,7 +251,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('rejects an unknown action', async () => {
       await request(server)
         .post(`/businesses/${businessId}/messages`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ customerId: withPhone, action: 'DELIVERED', body: 'hi' })
         .expect(400);
     });
@@ -273,7 +259,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('rejects an empty body', async () => {
       await request(server)
         .post(`/businesses/${businessId}/messages`)
-        .set('Cookie', cookie)
+        .set(cookie)
         .send({ customerId: withPhone, action: 'COPIED', body: '  ' })
         .expect(400);
     });
@@ -281,7 +267,7 @@ describe('WhatsApp quick send (e2e)', () => {
     it('blocks recording against another business (404)', async () => {
       await request(server)
         .post(`/businesses/${businessId}/messages`)
-        .set('Cookie', otherCookie)
+        .set(otherCookie)
         .send({ customerId: withPhone, action: 'WHATSAPP_OPENED', body: 'hi' })
         .expect(404);
     });

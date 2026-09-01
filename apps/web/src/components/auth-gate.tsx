@@ -11,7 +11,10 @@ import { useMe } from '@/hooks/use-auth';
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const me = useMe();
-  const unauthenticated = me.isError && me.error.status === 401;
+  // Only act once the query has settled. A refetch in flight still exposes the
+  // previous error, and redirecting on that bounced users straight back to
+  // /login immediately after a successful sign-in.
+  const unauthenticated = me.isError && me.error.status === 401 && !me.isFetching;
 
   useEffect(() => {
     if (unauthenticated) router.replace('/login');
@@ -26,7 +29,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (me.isError) {
-    if (unauthenticated) return null;
+    if (me.error.status === 401) return null;
     return (
       <main className="flex flex-1 items-center justify-center py-24">
         <p className="text-sm text-muted-foreground">
